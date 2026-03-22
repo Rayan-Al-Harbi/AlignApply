@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from extraction import extract_job_profile, extract_cv_profile
 from chunking import chunk_cv
 from rag import store_cv_chunks, retrieve_relevant_chunks

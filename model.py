@@ -1,3 +1,4 @@
+from enum import Enum
 from pydantic import BaseModel
 
 # --- Job Description Models ---
@@ -33,3 +34,22 @@ class CandidateProfile(BaseModel):
     summary: str
 
 
+# --- Alignment Analysis Models ---
+
+class SkillType(str, Enum):
+    HARD = "hard"
+    SOFT = "soft"
+    LANGUAGE = "language"
+
+
+
+class SkillMatch(BaseModel):
+    skill: str
+    matched: bool
+    evidence: str  # the CV chunk or quote that supports the judgment
+
+
+class AlignmentAnalysis(BaseModel):
+    matched_skills: list[SkillMatch]
+    missing_skills: list[str]
+    overall_fit: str  # brief narrative summary

@@ -49,3 +49,33 @@ def retrieve_relevant_chunks(query: str, top_k: int = 3) -> list[dict]:
         {"text": hit.payload["text"], "score": hit.score}
         for hit in results
     ]
+
+
+TOKEN_THRESHOLD = 200
+
+
+def keyword_search(skill: str) -> list[str]:
+    all_chunks = qdrant.scroll(
+        collection_name=COLLECTION_NAME,
+        limit=100,
+        with_payload=True,
+    )[0]
+    return [p.payload["text"] for p in all_chunks if skill.lower() in p.payload["text"].lower()]
+
+
+def get_cv_context(cv_text: str, skill: str, chunks_stored: bool) -> str:
+    if len(cv_text.split()) < TOKEN_THRESHOLD:
+        return cv_text  # short CV, just use the whole thing
+
+    keyword_matches = keyword_search(skill)
+    semantic_chunks = [c["text"] for c in retrieve_relevant_chunks(query=skill, top_k=3)]
+
+    # merge, keeping keyword matches first, deduplicating by content
+    seen = set()
+    merged = []
+    for chunk in keyword_matches + semantic_chunks:
+        if chunk not in seen:
+            seen.add(chunk)
+            merged.append(chunk)
+
+    return "\n".join(merged)

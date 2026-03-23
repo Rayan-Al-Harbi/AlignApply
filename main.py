@@ -3,7 +3,8 @@ load_dotenv()
 
 from extraction import extract_job_profile, extract_cv_profile
 from chunking import chunk_cv
-from rag import store_cv_chunks, retrieve_relevant_chunks
+from rag import store_cv_chunks, retrieve_relevant_chunks, get_cv_context, keyword_search, TOKEN_THRESHOLD
+from analysis import analyze_alignment, classify_skills
 
 
 # --- Sample job description ---
@@ -84,6 +85,55 @@ Experience:
 Education:
 - B.Sc. Computer Science, University of Cityville, 2020
 """
+ray = """Rayan Mazen Alharbi
+
+Riyadh, Saudi Arabia | +966590803444 | RayanMFH111@gmail.com | LinkedIn | GitHub
+
+OBJECTIVE
+Senior Computer Science student specializing in Artificial Intelligence and Machine Learning, with strong experience in Python and data-driven systems. Seeking opportunities to apply AI techniques to real-world problems and contribute to impactful technology solutions.
+
+EDUCATION
+•	Bachelor | Computer Science | Imam Mohammad bin Saud University | August 2022 – Present | GPA 4.69
+EXPERIENCE
+•	AI Team Leader and Member | Enjaz Club | CCIS | (September 2024 – Present)
+o	Participated in online sessions and shared AI concepts between team members.
+o	Led a team of 10+ members to build an AI-focused project and increased member engagement.
+
+CERTIFICATIONS
+•	IBM RAG and Agentic AI | IBM.
+
+•	Machine Learning Specialization | DeepLearning.AI.
+
+•	Deep Learning Specialization | DeepLearning.AI.
+
+•	The Complete Python Pro Bootcamp | Udemy.
+
+•	Responsive Web Design | FreeCodeCamp.
+
+SKILLS
+•	Soft Skills:
+o	Leadership & Team Coordination, Technical Communication, Problem-Solving, Time management.
+•	Technical Skills:
+o	Python, Java, JavaScript, HTML/CSS · TensorFlow, PyTorch, Scikit-learn, NumPy, Pandas,
+LangChain/LangGraph · Next.js, Node.js · MongoDB
+
+PROJECTS
+Mirqab (مرقاب) — Smart Street Pothole Detection System On Drone-Based Footage | Graduation Project (In Progress)
+•	Tech: Python, PyTorch, YOLOv8, OpenCV.
+•	Trained a YOLOv8-based pothole detection model using the Multi-Weather Pothole Detection (MWPD) dataset.
+
+DuaDesign — AI-Powered Personalized Dua Generator | February 2026
+•	Tech: Next.js, TypeScript, RAG, Groq API (Llama 4 Maverick), Orpheus TTS, Vercel.
+•	Built and deployed a RAG pipeline matching user input to authentic references with dynamic context injection to generate personalized, grounded Arabic Duas, generating more than 500 Duas across multiple users.
+
+Eidaah (إيضاح) — AI-Powered Presentation Explainer | Enjaz Club | March 2026
+•	Tech: React, FastAPI, Groq API (Llama 3.3 70B).
+•	Led the AI team to build and deploy a bilingual (Arabic/English) tool that analyzes uploaded PDF/PPTX presentations slide-by-slide, generating educational explanations and real-world examples using LLM inference.
+
+LANGUAGES
+•	Arabic - Native
+•	English – Fluent (Professional working proficiency)
+ """
 
 
 if __name__ == "__main__":
@@ -99,23 +149,49 @@ if __name__ == "__main__":
     print("=" * 50)
     print("Chunking CV and storing in vector DB...")
     print("=" * 50)
-    chunks = chunk_cv(sample_cv)
+    chunks = chunk_cv(ray)
     store_cv_chunks(chunks)
     print(f"Stored {len(chunks)} chunks.")
 
-    # Step 3: Retrieve relevant chunks using job skills as query
-    query = ", ".join(job_profile.required_skills)
-    print(f"\nQuerying with: {query}")
-    relevant_chunks = retrieve_relevant_chunks(query, top_k=3)
-    print("\nTop relevant CV chunks:")
-    for i, chunk in enumerate(relevant_chunks, 1):
-        print(f"\n[{i}] (score: {chunk['score']:.4f})\n{chunk['text']}")
-
-    # Step 4: Extract candidate profile from retrieved chunks
+    # Step 3: Classify skills by type
     print()
     print("=" * 50)
-    print("Extracting Candidate Profile from relevant chunks...")
+    print("Classifying Skills...")
     print("=" * 50)
-    retrieved_text = "\n\n".join(c["text"] for c in relevant_chunks)
-    candidate_profile = extract_cv_profile(retrieved_text)
-    print(candidate_profile.model_dump_json(indent=2))
+    skill_types = classify_skills(job_profile.required_skills)
+    for skill, skill_type in skill_types.items():
+        print(f"  {skill}: {skill_type.value}")
+
+    # Step 4: Per-skill retrieval preview
+    print()
+    print("=" * 50)
+    print("Per-Skill Retrieval Preview...")
+    print("=" * 50)
+    is_short_cv = len(ray.split()) < TOKEN_THRESHOLD
+    for skill in job_profile.required_skills:
+        skill_type = skill_types.get(skill, "?")
+        print(f"\n[Skill: {skill} | type: {skill_type.value if hasattr(skill_type, 'value') else skill_type}]")
+        if is_short_cv:
+            print("  (short CV — full text used, no retrieval)")
+        else:
+            kw_hits = keyword_search(skill)
+            sem_hits = [c["text"] for c in retrieve_relevant_chunks(query=skill, top_k=3)
+                        if c["text"] not in kw_hits]
+            if kw_hits:
+                for chunk in kw_hits:
+                    print(f"  [keyword]  {chunk.splitlines()[0][:80].strip()}")
+            else:
+                print("  [keyword]  no exact match")
+            if sem_hits:
+                for chunk in sem_hits:
+                    print(f"  [semantic] {chunk.splitlines()[0][:80].strip()}")
+            else:
+                print("  [semantic] (all top results already in keyword hits)")
+
+    # Step 5: Run alignment analysis
+    print()
+    print("=" * 50)
+    print("Running Alignment Analysis...")
+    print("=" * 50)
+    analysis = analyze_alignment(job_profile, ray, chunks_stored=True, skill_types=skill_types)
+    print(analysis.model_dump_json(indent=2))

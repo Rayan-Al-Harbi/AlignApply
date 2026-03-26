@@ -42,6 +42,9 @@ ApplyCheck takes a CV and a job posting, then runs them through a pipeline of sp
 
 ```
 ├── agents/          # Subagent definitions (analyzer, writer, scorer)
+      ├── analyzer.py
+      ├── scorer.py
+      |__ writer.py
 ├── main.py          # Entry point
 ├── graph.py         # LangGraph workflow definition
 ├── state.py         # Shared state schema

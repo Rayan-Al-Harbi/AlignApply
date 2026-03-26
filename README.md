@@ -9,21 +9,21 @@ ApplyCheck takes a CV and a job posting, then runs them through a pipeline of sp
 ## Architecture
 
 ```
-                                                 ┌──────────────────┐
-                                                 │ Supervisor Agent │
-                                                 └─────────┬────────┘
-                                                           │
-                                          ┌────────────────┼─────────────────┐
-                                          ▼                ▼                 ▼
-                                 ┌────────────────┐ ┌──────────────┐ ┌──────────────┐
-                                 │ Analyzer Agent │ │ Writer Agent │ │ Scorer Agent │
-                                 └─────────┬──────┘ └───────┬──────┘ └───────┬──────┘
-                                           │                │                │
-                                           ▼                ▼                ▼
-                                           ┌──────────────────────────────────┐
-                                           │         RAG Pipeline             │
-                                           │   (CV Extraction + Chunking)     │
-                                           └──────────────────────────────────┘
+                                       ┌──────────────────┐
+                                       │ Supervisor Agent │
+                                       └─────────┬────────┘
+                                                 │
+                                ┌────────────────┼─────────────────┐
+                                ▼                ▼                 ▼
+                        ┌────────────────┐ ┌──────────────┐ ┌──────────────┐
+                        │ Analyzer Agent │ │ Writer Agent │ │ Scorer Agent │
+                        └─────────┬──────┘ └───────┬──────┘ └───────┬──────┘
+                                  │                │                │
+                                  ▼                ▼                ▼
+                                 ┌──────────────────────────────────┐
+                                 │         RAG Pipeline             │
+                                 │   (CV Extraction + Chunking)     │
+                                 └──────────────────────────────────┘
 ```
 
 **Supervisor** delegates tasks to three subagents:

@@ -10,7 +10,7 @@ def supervisor_node(state: ApplicationState) -> dict:
         return {"current_agent": "analyzer"}
     elif state.cover_letter is None:
         return {"current_agent": "writer"}
-    elif state.score is None:
+    elif state.scorer_output is None:
         return {"current_agent": "scorer"}
     else:
         return {"current_agent": "done", "is_complete": True}

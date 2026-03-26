@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 # --- Job Description Models ---
 
@@ -53,3 +53,25 @@ class AlignmentAnalysis(BaseModel):
     matched_skills: list[SkillMatch]
     missing_skills: list[str]
     overall_fit: str  # brief narrative summary
+
+
+# --- Scorer Models ---
+
+class DimensionScore(BaseModel):
+    dimension: str
+    score: float  # 0-100
+    weight: float
+    reasoning: str
+
+
+class ScorerOutput(BaseModel):
+    dimensions: list[DimensionScore]
+    overall_score: float
+    summary: str
+
+    @model_validator(mode="after")
+    def enforce_weighted_average(self):
+        expected = round(sum(d.score * d.weight for d in self.dimensions), 1)
+        if abs(self.overall_score - expected) > 2.0:
+            self.overall_score = expected
+        return self

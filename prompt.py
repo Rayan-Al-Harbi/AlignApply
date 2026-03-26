@@ -110,17 +110,17 @@ Return ONLY valid JSON:
 
 HARD_SKILL_EVAL_RULES = """
 - Only mark matched if the skill is explicitly mentioned or a direct technical synonym exists.
-- A direct technical synonym is a specific implementation of the skill (e.g., PostgreSQL, MySQL, SQLite → SQL; React, Vue → JavaScript).
-- For broad foundational skills (e.g., "Programming concepts", "Software development"), match if the CV demonstrates proficiency through specific languages, frameworks, or projects.
+- A direct technical synonym is a specific implementation of the evaluated skill (e.g., PostgreSQL, MySQL, SQLite → SQL; React, Vue → JavaScript).
+- For broad foundational skills, match if the CV demonstrates proficiency through specific languages, frameworks, or projects that fall under that umbrella.
 - Do not infer from loosely related technologies.
 """
 
 SOFT_SKILL_EVAL_RULES = """
-- Soft skills are rarely stated explicitly.
-- Infer from responsibilities and achievements described in the CV.
-- "Built and maintained microservices" implies problem-solving.
-- "Worked across teams" or any collaborative work implies communication.
-- Mark matched if there is reasonable evidence, and explain your inference.
+- Soft skills are rarely stated explicitly. You MUST infer them from behavioral evidence in the CV.
+- Professional work experience is strong evidence. Building software in a team, maintaining services, collaborating across roles, holding multiple professional positions — all demonstrate soft skills in action.
+- Do not require the exact skill name to appear in the CV. Look for actions and responsibilities that exercise the skill.
+- Use your judgment to map actions to skills. If a responsibility or achievement would require exercising the evaluated skill, that counts as evidence.
+- Mark matched if there is reasonable behavioral evidence. Explain your inference by citing the specific CV content.
 """
 
 LANGUAGE_EVAL_RULES = """
@@ -136,9 +136,9 @@ Job Title: {title}
 Job Responsibilities: {responsibilities}
 
 Alignment Analysis:
-- Matched skills: {matched_skills}
-- Missing skills: {missing_skills}
-- Overall fit: {overall_fit}
+{analysis}
+
+Overall fit: {overall_fit}
 
 Candidate CV:
 {cv_text}
@@ -152,43 +152,64 @@ Return ONLY valid JSON matching this exact schema:
 }}
 
 Rules:
-- Generate 3-6 CV suggestions. Each must be specific and reference concrete sections of the CV.
-- Suggestions should address missing skills, weak areas, or formatting improvements that would strengthen the application.
+- Generate 3-6 CV suggestions. Each must be specific and reference concrete sections of the CV (e.g., "Skills section", "Experience at [company]", "Education").
+- For missing skills: suggest adding them ONLY if the candidate has transferable experience. Do not suggest adding skills the candidate does not have.
+- For matched skills with weak evidence: suggest how to strengthen the phrasing by referencing the specific experience from the evidence field above.
+- Do not invent experience the candidate does not have.
 - The cover letter must be professional, 3-4 paragraphs, and directly connect the candidate's strengths to the job requirements.
 - Highlight matched skills as strengths. Acknowledge gaps honestly and frame them as areas of active growth.
-- Do not invent experience the candidate does not have.
 - Do not use generic filler language. Every sentence should be specific to this candidate and role.
 """
 
 
 SCORER_PROMPT = """
-You are a career coach giving a candidate direct, honest feedback on their application for a specific role. Address the candidate as "you" throughout.
+Score this job application across four dimensions.
 
-Job Title: {title}
-Required Skills: {required_skills}
+Job Profile:
+{job_profile}
 
 Alignment Analysis:
-- Matched skills: {matched_skills}
-- Missing skills: {missing_skills}
-- Overall fit: {overall_fit}
+{analysis}
 
 Cover Letter:
 {cover_letter}
 
-Return ONLY valid JSON matching this exact schema:
+Return ONLY valid JSON matching this schema:
 {{
-    "score": 0,
-    "reasoning": "string — structured feedback addressed directly to the candidate"
+    "dimensions": [
+        {{
+            "dimension": "Skill Match",
+            "score": 0,
+            "weight": 0.40,
+            "reasoning": "1-2 sentences explaining the score, referencing specific matched and missing skills."
+        }},
+        {{
+            "dimension": "Experience Relevance",
+            "score": 0,
+            "weight": 0.25,
+            "reasoning": "1-2 sentences on how directly the candidate's experience maps to the job responsibilities."
+        }},
+        {{
+            "dimension": "Cover Letter Quality",
+            "score": 0,
+            "weight": 0.20,
+            "reasoning": "1-2 sentences on specificity, professionalism, and how well it connects strengths to the role."
+        }},
+        {{
+            "dimension": "Overall Presentation",
+            "score": 0,
+            "weight": 0.15,
+            "reasoning": "1-2 sentences on the coherence and completeness of the full application package."
+        }}
+    ],
+    "overall_score": 0,
+    "summary": "2-3 sentence overall assessment addressed directly to the candidate using you/your."
 }}
 
-Scoring rules:
-- Score is an integer from 0 to 100.
-- Breakdown weights: skill match (40%), experience relevance (25%), cover letter quality (20%), overall presentation (15%).
-- skill match: ratio of matched to total required skills, penalize critical missing skills heavily.
-- experience relevance: how directly your experience maps to the job responsibilities.
-- cover letter quality: specificity, professionalism, and how well it connects your strengths to the role.
-- overall presentation: coherence of the full application package.
-- Be calibrated: 80+ means strong fit, 50-79 means partial fit with notable gaps, below 50 means weak fit.
-- Write the reasoning as direct feedback to the candidate using "you/your". Reference specific skills, experiences, and cover letter content. No generic statements.
-- Example tone: "You demonstrate strong alignment in X, but your application would benefit from Y."
+Rules:
+- Score each dimension independently based on evidence, not impression.
+- overall_score must equal the exact weighted average: sum of (score * weight) across all dimensions.
+- Be honest and calibrated: a candidate missing 3 of 5 required skills should not score above 50 on Skill Match.
+- 80+ means strong fit, 50-79 means partial fit with notable gaps, below 50 means weak fit.
+- Reference specific skills, experiences, and cover letter content. No generic statements.
 """

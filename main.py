@@ -119,8 +119,13 @@ def print_state(state: dict, label: str):
             title = value.title if hasattr(value, 'title') else value["title"]
             skills = value.required_skills if hasattr(value, 'required_skills') else value["required_skills"]
             print(f"  {key}: {title} ({len(skills)} required skills)")
-        elif key == "score_reasoning":
-            print(f"  {key}: {clean(str(value))}")
+        elif key == "scorer_output":
+            print(f"\n  Overall Score: {value.overall_score}/100\n")
+            for d in value.dimensions:
+                bar = "█" * int(d.score // 5) + "░" * (20 - int(d.score // 5))
+                print(f"  {d.dimension:<22} {bar} {d.score:5.1f}  (w={d.weight:.0%})")
+                print(f"  {'':22} {clean(d.reasoning)}\n")
+            print(f"  Summary: {clean(value.summary)}")
         else:
             print(f"  {key}: {value}")
 

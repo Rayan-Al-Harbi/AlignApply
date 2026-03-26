@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel
-from model import JobProfile, CandidateProfile, AlignmentAnalysis
+from model import JobProfile, CandidateProfile, AlignmentAnalysis, ScorerOutput
 
 
 class ApplicationState(BaseModel):
@@ -20,8 +20,7 @@ class ApplicationState(BaseModel):
     cover_letter: Optional[str] = None
 
     # --- Scorer outputs ---
-    score: Optional[float] = None
-    score_reasoning: Optional[str] = None
+    scorer_output: Optional[ScorerOutput] = None
 
     # --- Control ---
     current_agent: str = "analyzer"

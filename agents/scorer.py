@@ -1,9 +1,32 @@
 import json
 import os
 from groq import Groq
+from model import AlignmentAnalysis, JobProfile, ScorerOutput
 from prompt import SCORER_PROMPT
 
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
+
+
+def _format_job_profile(job_profile: JobProfile) -> str:
+    return (
+        f"Title: {job_profile.title}\n"
+        f"Experience Level: {job_profile.experience_level}\n"
+        f"Required Skills: {', '.join(job_profile.required_skills)}\n"
+        f"Responsibilities:\n" + "\n".join(f"  - {r}" for r in job_profile.responsibilities)
+    )
+
+
+def _format_analysis(analysis: AlignmentAnalysis) -> str:
+    matched_section = "\n".join(
+        f"  - {m.skill} (MATCHED — evidence: {m.evidence})"
+        for m in analysis.matched_skills
+    )
+    missing_section = "\n".join(f"  - {skill}" for skill in analysis.missing_skills)
+    return (
+        f"Matched Skills:\n{matched_section or '  none'}\n\n"
+        f"Missing Skills:\n{missing_section or '  none'}\n\n"
+        f"Overall Fit: {analysis.overall_fit}"
+    )
 
 
 def scorer_node(state) -> dict:
@@ -11,15 +34,9 @@ def scorer_node(state) -> dict:
     analysis = state.alignment_analysis
     cover_letter = state.cover_letter
 
-    matched_skills = ", ".join(m.skill for m in analysis.matched_skills) or "none"
-    missing_skills = ", ".join(analysis.missing_skills) or "none"
-
     prompt = SCORER_PROMPT.format(
-        title=job_profile.title,
-        required_skills=", ".join(job_profile.required_skills),
-        matched_skills=matched_skills,
-        missing_skills=missing_skills,
-        overall_fit=analysis.overall_fit,
+        job_profile=_format_job_profile(job_profile),
+        analysis=_format_analysis(analysis),
         cover_letter=cover_letter,
     )
 
@@ -30,10 +47,9 @@ def scorer_node(state) -> dict:
     )
 
     raw = response.choices[0].message.content.strip().strip("```json").strip("```").strip()
-    parsed = json.loads(raw, strict=False)
+    scorer_output = ScorerOutput.model_validate(json.loads(raw, strict=False))
 
     return {
-        "score": parsed["score"],
-        "score_reasoning": parsed["reasoning"],
+        "scorer_output": scorer_output,
         "is_complete": True,
     }

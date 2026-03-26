@@ -1,9 +1,21 @@
 import json
 import os
 from groq import Groq
+from model import AlignmentAnalysis
 from prompt import WRITER_PROMPT
 
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
+
+
+def _format_analysis(analysis: AlignmentAnalysis) -> str:
+    matched_section = "\n".join(
+        f"- {m.skill} (MATCHED — evidence: {m.evidence})"
+        for m in analysis.matched_skills
+    )
+    missing_section = "\n".join(
+        f"- {skill}" for skill in analysis.missing_skills
+    )
+    return f"MATCHED SKILLS:\n{matched_section or 'none'}\n\nMISSING SKILLS:\n{missing_section or 'none'}"
 
 
 def writer_node(state) -> dict:
@@ -11,14 +23,10 @@ def writer_node(state) -> dict:
     analysis = state.alignment_analysis
     cv_text = state.cv_text
 
-    matched_skills = ", ".join(m.skill for m in analysis.matched_skills) or "none"
-    missing_skills = ", ".join(analysis.missing_skills) or "none"
-
     prompt = WRITER_PROMPT.format(
         title=job_profile.title,
         responsibilities="\n".join(f"- {r}" for r in job_profile.responsibilities),
-        matched_skills=matched_skills,
-        missing_skills=missing_skills,
+        analysis=_format_analysis(analysis),
         overall_fit=analysis.overall_fit,
         cv_text=cv_text,
     )

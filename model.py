@@ -42,6 +42,15 @@ class SkillType(str, Enum):
     LANGUAGE = "language"
 
 
+class _SkillClassificationItem(BaseModel):
+    skill: str
+    type: SkillType
+
+
+class SkillClassifierOutput(BaseModel):
+    classifications: list[_SkillClassificationItem]
+
+
 
 class SkillMatch(BaseModel):
     skill: str

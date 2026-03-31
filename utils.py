@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from groq import Groq
 from pydantic import ValidationError
 from dotenv import load_dotenv
@@ -8,8 +9,38 @@ load_dotenv()
 
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
+MODEL = "llama-3.3-70b-versatile"
 
-def retry_llm_call(raw: str, error: str) -> str:
+
+def tracked_llm_call(
+    *,
+    agent: str,
+    messages: list[dict],
+    temperature: float = 0,
+    model: str = MODEL,
+) -> str:
+    """Wrapper around Groq chat completions that records Prometheus metrics."""
+    from api.metrics import LLM_CALL_COUNT, LLM_LATENCY, LLM_ERROR_COUNT
+
+    LLM_CALL_COUNT.labels(agent=agent, model=model).inc()
+    start = time.perf_counter()
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        error_type = type(e).__name__
+        LLM_ERROR_COUNT.labels(agent=agent, error_type=error_type).inc()
+        raise
+    finally:
+        elapsed = time.perf_counter() - start
+        LLM_LATENCY.labels(agent=agent, model=model).observe(elapsed)
+
+
+def retry_llm_call(raw: str, error: str, agent: str = "retry") -> str:
     """Ask the LLM to fix its own malformed JSON output."""
     prompt = (
         "Your previous JSON response could not be parsed. "
@@ -17,15 +48,14 @@ def retry_llm_call(raw: str, error: str) -> str:
         f"Parse error: {error}\n\n"
         f"Your previous response:\n{raw}"
     )
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+    return tracked_llm_call(
+        agent=agent,
         messages=[{"role": "user", "content": prompt}],
         temperature=0,
     )
-    return response.choices[0].message.content
 
 
-def parse_llm_json(raw: str, model_class, max_retries: int = 2):
+def parse_llm_json(raw: str, model_class, max_retries: int = 2, agent: str = "retry"):
     for attempt in range(max_retries + 1):
         try:
             clean = raw.strip()
@@ -36,4 +66,4 @@ def parse_llm_json(raw: str, model_class, max_retries: int = 2):
         except (json.JSONDecodeError, ValidationError) as e:
             if attempt == max_retries:
                 raise
-            raw = retry_llm_call(raw, str(e))
+            raw = retry_llm_call(raw, str(e), agent=agent)

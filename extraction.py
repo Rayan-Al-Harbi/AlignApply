@@ -1,19 +1,12 @@
 import logging
-import os
 import time
 
-from groq import Groq
-from dotenv import load_dotenv
 from langsmith import traceable
 from model import JobProfile, CandidateProfile
 from prompt import JOB_EXTRACTION_PROMPT, CV_EXTRACTION_PROMPT
-from utils import parse_llm_json
-
-load_dotenv()
+from utils import parse_llm_json, tracked_llm_call
 
 logger = logging.getLogger("applycheck.extraction")
-
-client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
 
 @traceable(name="job_extraction", metadata={"component": "extraction"})
@@ -24,13 +17,12 @@ def extract_job_profile(job_description_text: str) -> JobProfile:
         job_description_text=job_description_text
     )
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+    raw = tracked_llm_call(
+        agent="analyzer",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0,
     )
 
-    result = parse_llm_json(response.choices[0].message.content, JobProfile)
+    result = parse_llm_json(raw, JobProfile, agent="analyzer")
 
     logger.info("Job profile extracted", extra={"event_data": {
         "event": "llm_call",
@@ -51,13 +43,12 @@ def extract_cv_profile(cv_description_text: str) -> CandidateProfile:
         cv_description_text=cv_description_text
     )
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+    raw = tracked_llm_call(
+        agent="analyzer",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0,
     )
 
-    result = parse_llm_json(response.choices[0].message.content, CandidateProfile)
+    result = parse_llm_json(raw, CandidateProfile, agent="analyzer")
 
     logger.info("CV profile extracted", extra={"event_data": {
         "event": "llm_call",

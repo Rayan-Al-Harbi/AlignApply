@@ -1,18 +1,12 @@
 import logging
-import os
 import time
 
-from groq import Groq
-from dotenv import load_dotenv
 from model import AlignmentAnalysis, JobProfile, ScorerOutput
 from prompt import SCORER_PROMPT
-from utils import parse_llm_json
-
-load_dotenv()
+from utils import parse_llm_json, tracked_llm_call
+from api.metrics import AGENT_LATENCY, PIPELINE_ERROR_COUNT, SCORE_DISTRIBUTION, SKILLS_MATCHED
 
 logger = logging.getLogger("applycheck.scorer")
-
-client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
 
 def _format_job_profile(job_profile: JobProfile) -> str:
@@ -47,44 +41,53 @@ def scorer_node(state) -> dict:
         "trace_id": trace_id,
     }})
 
-    job_profile = state.job_profile
-    analysis = state.alignment_analysis
-    cover_letter = state.cover_letter
+    try:
+        job_profile = state.job_profile
+        analysis = state.alignment_analysis
+        cover_letter = state.cover_letter
 
-    prompt = SCORER_PROMPT.format(
-        job_profile=_format_job_profile(job_profile),
-        analysis=_format_analysis(analysis),
-        cover_letter=cover_letter,
-    )
+        prompt = SCORER_PROMPT.format(
+            job_profile=_format_job_profile(job_profile),
+            analysis=_format_analysis(analysis),
+            cover_letter=cover_letter,
+        )
 
-    llm_start = time.perf_counter()
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0,
-    )
-    llm_ms = (time.perf_counter() - llm_start) * 1000
+        raw = tracked_llm_call(
+            agent="scorer",
+            messages=[{"role": "user", "content": prompt}],
+        )
 
-    logger.info("Scorer LLM call complete", extra={"event_data": {
-        "event": "llm_call",
-        "agent": "scorer",
-        "trace_id": trace_id,
-        "latency_ms": round(llm_ms, 2),
-    }})
+        logger.info("Scorer LLM call complete", extra={"event_data": {
+            "event": "llm_call",
+            "agent": "scorer",
+            "trace_id": trace_id,
+        }})
 
-    scorer_output = parse_llm_json(response.choices[0].message.content, ScorerOutput)
+        scorer_output = parse_llm_json(raw, ScorerOutput, agent="scorer")
 
-    elapsed_ms = (time.perf_counter() - start) * 1000
+        # Track score and skills-match ratio
+        SCORE_DISTRIBUTION.observe(scorer_output.overall_score)
+        total_skills = len(analysis.matched_skills) + len(analysis.missing_skills)
+        if total_skills > 0:
+            ratio = len(analysis.matched_skills) / total_skills
+            SKILLS_MATCHED.observe(ratio)
 
-    logger.info("Scorer complete", extra={"event_data": {
-        "event": "agent_complete",
-        "agent": "scorer",
-        "trace_id": trace_id,
-        "overall_score": scorer_output.overall_score,
-        "latency_ms": round(elapsed_ms, 2),
-    }})
+        elapsed_ms = (time.perf_counter() - start) * 1000
 
-    return {
-        "scorer_output": scorer_output,
-        "is_complete": True,
-    }
+        logger.info("Scorer complete", extra={"event_data": {
+            "event": "agent_complete",
+            "agent": "scorer",
+            "trace_id": trace_id,
+            "overall_score": scorer_output.overall_score,
+            "latency_ms": round(elapsed_ms, 2),
+        }})
+
+        return {
+            "scorer_output": scorer_output,
+            "is_complete": True,
+        }
+    except Exception:
+        PIPELINE_ERROR_COUNT.labels(agent="scorer").inc()
+        raise
+    finally:
+        AGENT_LATENCY.labels(agent="scorer").observe(time.perf_counter() - start)

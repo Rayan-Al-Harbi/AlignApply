@@ -2,9 +2,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import logging
+import time
 import uuid
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, Response, UploadFile, File, Form
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from api.schemas import AnalyzeRequest, AnalyzeResponse
+from api.metrics import REQUEST_COUNT, REQUEST_LATENCY
 from api.utils import build_response, extract_text_from_file
 from graph import app as app_graph
 from logging_config import setup_logging
@@ -18,9 +21,15 @@ app = FastAPI(
 )
 
 
+@app.get("/metrics")
+def metrics():
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 @app.post("/analyze", response_model=AnalyzeResponse)
 def analyze_application(request: AnalyzeRequest):
     trace_id = str(uuid.uuid4())
+    start = time.perf_counter()
     try:
         logger.info("Request received", extra={"event_data": {
             "event": "request_start",
@@ -42,8 +51,10 @@ def analyze_application(request: AnalyzeRequest):
             "trace_id": trace_id,
         }})
 
+        REQUEST_COUNT.labels(endpoint="/analyze", status="success").inc()
         return build_response(final_state)
     except Exception as e:
+        REQUEST_COUNT.labels(endpoint="/analyze", status="error").inc()
         logger.error("Request failed", extra={"event_data": {
             "event": "request_error",
             "endpoint": "/analyze",
@@ -51,6 +62,8 @@ def analyze_application(request: AnalyzeRequest):
             "error": str(e),
         }})
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        REQUEST_LATENCY.labels(endpoint="/analyze").observe(time.perf_counter() - start)
 
 
 @app.post("/analyze/upload", response_model=AnalyzeResponse)
@@ -59,34 +72,45 @@ async def analyze_with_upload(
     cv_file: UploadFile = File(...),
 ):
     trace_id = str(uuid.uuid4())
+    start = time.perf_counter()
 
-    cv_text = await extract_text_from_file(cv_file)
+    try:
+        cv_text = await extract_text_from_file(cv_file)
 
-    if not cv_text.strip():
-        raise HTTPException(
-            status_code=400,
-            detail="Could not extract text from the uploaded file.",
-        )
+        if not cv_text.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Could not extract text from the uploaded file.",
+            )
 
-    logger.info("Upload request received", extra={"event_data": {
-        "event": "request_start",
-        "endpoint": "/analyze/upload",
-        "trace_id": trace_id,
-        "filename": cv_file.filename,
-    }})
+        logger.info("Upload request received", extra={"event_data": {
+            "event": "request_start",
+            "endpoint": "/analyze/upload",
+            "trace_id": trace_id,
+            "filename": cv_file.filename,
+        }})
 
-    initial_state = {
-        "job_description": job_description,
-        "cv_text": cv_text,
-        "trace_id": trace_id,
-    }
+        initial_state = {
+            "job_description": job_description,
+            "cv_text": cv_text,
+            "trace_id": trace_id,
+        }
 
-    final_state = app_graph.invoke(initial_state)
+        final_state = app_graph.invoke(initial_state)
 
-    logger.info("Upload request complete", extra={"event_data": {
-        "event": "request_complete",
-        "endpoint": "/analyze/upload",
-        "trace_id": trace_id,
-    }})
+        logger.info("Upload request complete", extra={"event_data": {
+            "event": "request_complete",
+            "endpoint": "/analyze/upload",
+            "trace_id": trace_id,
+        }})
 
-    return build_response(final_state)
+        REQUEST_COUNT.labels(endpoint="/analyze/upload", status="success").inc()
+        return build_response(final_state)
+    except HTTPException:
+        REQUEST_COUNT.labels(endpoint="/analyze/upload", status="error").inc()
+        raise
+    except Exception as e:
+        REQUEST_COUNT.labels(endpoint="/analyze/upload", status="error").inc()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        REQUEST_LATENCY.labels(endpoint="/analyze/upload").observe(time.perf_counter() - start)

@@ -1,20 +1,13 @@
 import logging
-import os
 import time
 
-from groq import Groq
-from dotenv import load_dotenv
 from langsmith import traceable
 from model import JobProfile, SkillMatch, AlignmentAnalysis, SkillType, SkillClassifierOutput
 from prompt import SKILL_EVAL_PROMPT, OVERALL_FIT_PROMPT, SKILL_CLASSIFIER_PROMPT, HARD_SKILL_EVAL_RULES, SOFT_SKILL_EVAL_RULES, LANGUAGE_EVAL_RULES
 from rag import retrieve_relevant_chunks, get_cv_context
-from utils import parse_llm_json
-
-load_dotenv()
+from utils import parse_llm_json, tracked_llm_call
 
 logger = logging.getLogger("applycheck.analysis")
-
-client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
 
 def classify_skills(skills: list[str]) -> dict[str, SkillType]:
@@ -22,13 +15,12 @@ def classify_skills(skills: list[str]) -> dict[str, SkillType]:
 
     prompt = SKILL_CLASSIFIER_PROMPT.format(skills=", ".join(skills))
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+    raw = tracked_llm_call(
+        agent="analyzer",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0,
     )
 
-    result = parse_llm_json(response.choices[0].message.content, SkillClassifierOutput)
+    result = parse_llm_json(raw, SkillClassifierOutput, agent="analyzer")
 
     logger.info("Skills classified", extra={"event_data": {
         "event": "llm_call",
@@ -54,13 +46,12 @@ def evaluate_skill_match(skill: str, context: str, skill_type: SkillType = Skill
     rules = _RULES_BY_TYPE.get(skill_type, HARD_SKILL_EVAL_RULES)
     prompt = SKILL_EVAL_PROMPT.format(skill=skill, context=context, rules=rules)
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+    raw = tracked_llm_call(
+        agent="analyzer",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0,
     )
 
-    result = parse_llm_json(response.choices[0].message.content, SkillMatch)
+    result = parse_llm_json(raw, SkillMatch, agent="analyzer")
 
     logger.info("Skill evaluated", extra={"event_data": {
         "event": "llm_call",
@@ -87,10 +78,9 @@ def generate_overall_fit(
         missing_list=", ".join(missing) if missing else "none",
     )
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+    raw = tracked_llm_call(
+        agent="analyzer",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0,
     )
 
     logger.info("Overall fit generated", extra={"event_data": {
@@ -99,7 +89,7 @@ def generate_overall_fit(
         "latency_ms": round((time.perf_counter() - start) * 1000, 2),
     }})
 
-    return response.choices[0].message.content.strip()
+    return raw.strip()
 
 
 def analyze_alignment(job_profile: JobProfile, cv_text: str, chunks_stored: bool = True, skill_types: dict[str, SkillType] | None = None) -> AlignmentAnalysis:

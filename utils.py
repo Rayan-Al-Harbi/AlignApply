@@ -5,7 +5,7 @@ from groq import Groq
 from pydantic import ValidationError
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
@@ -55,12 +55,23 @@ def retry_llm_call(raw: str, error: str, agent: str = "retry") -> str:
     )
 
 
+def _extract_json(text: str) -> str:
+    """Strip markdown fences and extract the JSON object from LLM output."""
+    clean = text.strip()
+    if clean.startswith("```"):
+        clean = clean.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+    # If the LLM added text before/after the JSON, extract just the object
+    start = clean.find("{")
+    end = clean.rfind("}")
+    if start != -1 and end != -1:
+        clean = clean[start : end + 1]
+    return clean
+
+
 def parse_llm_json(raw: str, model_class, max_retries: int = 2, agent: str = "retry"):
     for attempt in range(max_retries + 1):
         try:
-            clean = raw.strip()
-            if clean.startswith("```"):
-                clean = clean.split("\n", 1)[1].rsplit("```", 1)[0]
+            clean = _extract_json(raw)
             parsed = json.loads(clean)
             return model_class(**parsed)
         except (json.JSONDecodeError, ValidationError) as e:

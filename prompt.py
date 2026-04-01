@@ -13,7 +13,12 @@ Return ONLY valid JSON matching this exact schema:
 Rules:
 - If a field is not found, use an empty string or empty list as appropriate.
 - Do not invent information. Only extract what is explicitly stated.
-- Skills should be concise (e.g., "Python", "Project Management", "AWS").
+- Extract each skill as a specific, evaluatable item — not a broad umbrella category.
+  When a requirement lists sub-items (in parentheses, after a colon, or as examples), extract the sub-items individually.
+  BAD:  "Software engineering" — too broad to evaluate.
+  GOOD: "APIs", "Testing", "Reliability" — each can be checked against a CV.
+- Include soft skills (communication, collaboration, leadership) and language proficiency when stated.
+- Any skills listed under "nice to have", "preferred", "bonus", or similar sections go in preferred_skills, not required_skills.
 
 Job Description:
 {job_description_text}
@@ -211,5 +216,6 @@ Rules:
 - overall_score must equal the exact weighted average: sum of (score * weight) across all dimensions.
 - Be honest and calibrated: a candidate missing 3 of 5 required skills should not score above 50 on Skill Match.
 - 80+ means strong fit, 50-79 means partial fit with notable gaps, below 50 means weak fit.
+- Skill Match scoring: base the score primarily on required skills (what percentage are matched). Then adjust up or down based on preferred skills — matching preferred skills can boost the score by up to 10 points, but missing all preferred skills should lower it by 5-10 points from the required-only baseline. A candidate who matches all required skills but no preferred skills should score around 75-85, not 100.
 - Reference specific skills, experiences, and cover letter content. No generic statements.
 """

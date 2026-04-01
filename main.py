@@ -119,6 +119,10 @@ def print_state(state: dict, label: str):
             matched = [m.skill for m in a.matched_skills] if hasattr(a, 'matched_skills') else [m["skill"] for m in a["matched_skills"]]
             missing = a.missing_skills if hasattr(a, 'missing_skills') else a["missing_skills"]
             logger.info(f"{key}: matched={matched}, missing={missing}")
+            pref_matched = [m.skill for m in a.matched_preferred] if hasattr(a, 'matched_preferred') and a.matched_preferred else []
+            pref_missing = a.missing_preferred if hasattr(a, 'missing_preferred') and a.missing_preferred else []
+            if pref_matched or pref_missing:
+                logger.info(f"  preferred: matched={pref_matched}, missing={pref_missing}")
         elif key == "job_profile":
             title = value.title if hasattr(value, 'title') else value["title"]
             skills = value.required_skills if hasattr(value, 'required_skills') else value["required_skills"]

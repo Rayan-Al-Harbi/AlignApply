@@ -1,0 +1,215 @@
+Saud Bin Samhan
+AI Developer
+📍 Riyadh, SA | 📞 +966 50 233 7164 | ✉️ saudbinsmhan@gmail.com | Saud Samhan | github
+PROFILE
+Computer Science student at IMSIU and current Prompt Engineer Intern at Velents.ai, a Saudi
+AI company specializing in automated hiring and workforce automation. I build end-to-end AI
+solutions, from prompt engineering and ML pipelines to full-stack deployment, using Python,
+PyTorch/TensorFlow, FastAPI, and React, with hands-on experience in AI development and
+computer vision.
+EDUCATION
+Bachelor of Computer Science 2022 – 2026
+Imam Mohammad Ibn Saud Islamic University (IMSIU)
+INTERNSHIP EXPERIENCE
+Prompt Engineer Intern — Velents.ai · Riyadh, SA Jan 2026 – Present
+• Built and deployed 10+ customized AI agents on Velents platform across multiple client use cases; work
+documented and shared with company partners.
+• Assigned a direct task by the Sales Manager to build a new agent — delivered successfully and
+received positive feedback.
+• Designed and optimized prompts for Velents AI products: AI Recruiter, Agent.sa (voice/WhatsApp),
+Velents Wisdom (RAG), and SAFHA document analysis.
+• Improved cross-team workflow using Excel-based agent tracking and documentation, enhancing
+coordination with clients and partners.
+PROJECTS
+PlanMate AI — AI-Powered Learning Plan Generator — Tuwaiq Academy · Groq Capstone Sep 2025
+• Integrated Groq Llama-3.1-8B with FastAPI backend to generate JSON-structured learning paths; built responsive
+web UI (HTML/CSS/JS).
+SILA Arabic Sign Language Recognition System — Samsung Innovation Campus · AI Capstone Sep 2025
+• Trained PyTorch CNN on ~49K images achieving 97.4% accuracy; deployed FastAPI inference service with realtime
+web UI; led 6-member team with Agile.
+HopeHub Charity Management Platform — Misk Skills · Backend Capstone Jul 2025
+• Built full-stack Flask + Supabase platform with JWT auth, 8-table schema, 15 REST APIs, and responsive admin
+dashboard with payment integration.
+TRAINING PROGRAMS
+• Velents.ai Prompt Engineering & AI Development Jan 2026 – Present
+• Samsung & Misk Skills Samsung Innovation Campus AI and Data Science July 2025 – Sept 2025
+• Misk Skills Immersive Backend Developer Program June 2025 – July 2025
+• Tuwaiq Academy Introduction to AI Engineering with Groq September 2025
+• Ministry of Communications and IT Data Visualization with Power BI Augst 2025
+• Tuwaiq Academy Power BI 101 102 103 Augst 2025
+Skills
+• AI & Prompting: Prompt Engineering, AI Agents, LLMs (Groq/Llama), PyTorch, TensorFlow, Keras, Scikitlearn,
+Pandas, NumPy.
+• Web & Backend: FastAPI, Flask, React, Node.js, RESTful APIs, Supabase.
+• Tools: Python, Java, SQL, Git, GitHub, Power BI, VS Code, Cursor.
+• Soft Skills: Adaptability and fast learning Analytical Thinking, Self-Motivation, Problem-Solving,
+Leadership.
+• Languages: Arabic (Native), English (Professional).
+
+
+WRITE job under here:
+
+Junior AI Engineer — TalentBridge · Riyadh, Saudi Arabia
+
+About the Role:
+We are looking for a Junior AI Engineer to join our AI Products team. You will work alongside senior engineers to build, deploy, and maintain AI-powered features across our SaaS platform. This role is ideal for a recent graduate or early-career developer with hands-on AI project experience and a strong foundation in Python.
+
+Responsibilities:
+• Develop and maintain ML pipelines for NLP and computer vision features using Python and PyTorch.
+• Build and optimize RESTful APIs (FastAPI) to serve model predictions at scale.
+• Collaborate with the product team to translate business requirements into technical specs.
+• Write clean, tested code with unit tests and CI/CD integration (pytest, GitHub Actions).
+• Contribute to prompt engineering and evaluation workflows for LLM-based features.
+• Participate in code reviews, sprint planning, and technical design discussions.
+
+Requirements:
+• Bachelor's degree in Computer Science or related field (fresh graduates welcome).
+• Proficiency in Python and at least one ML framework (PyTorch or TensorFlow).
+• Experience building REST APIs with FastAPI or Flask.
+• Familiarity with Git, GitHub, and collaborative development workflows.
+• Understanding of NLP fundamentals (tokenization, embeddings, transformer architectures).
+• Strong problem-solving skills and ability to learn quickly in a fast-paced environment.
+• Fluent in Arabic and English.
+
+Nice to Have:
+• Experience with Docker and containerized deployments.
+• Familiarity with vector databases (Qdrant, Pinecone, or similar).
+• Exposure to LangChain, LangGraph, or other LLM orchestration frameworks.
+• Experience with cloud platforms (AWS, GCP, or Azure).
+• Knowledge of CI/CD pipelines and automated testing.
+
+
+---
+
+Senior Platform Engineer — FinSecure · Zurich, Switzerland
+
+About the Role:
+We are hiring a Senior Platform Engineer to lead the design and operation of our core banking infrastructure. You will own the reliability, security, and scalability of systems processing millions of financial transactions daily. This is a senior IC role requiring deep systems expertise and financial-domain experience.
+
+Responsibilities:
+• Architect and maintain high-availability distributed systems handling 50K+ TPS across multiple regions.
+• Design and implement zero-downtime deployment pipelines for mission-critical financial services.
+• Lead incident response and post-mortem processes; maintain 99.99% SLA commitments.
+• Build and operate Kubernetes clusters (EKS/GKE) with advanced networking, service mesh (Istio), and mTLS.
+• Develop internal tooling in Go and Rust for infrastructure automation and observability.
+• Implement and audit security controls for PCI-DSS and SOC 2 compliance.
+• Optimize PostgreSQL and Kafka clusters for low-latency, high-throughput workloads.
+• Mentor junior engineers and drive architecture decisions through RFCs and design reviews.
+
+Requirements:
+• 7+ years of professional experience in platform/infrastructure/SRE engineering.
+• Expert-level proficiency in Go and Rust; strong Linux systems programming knowledge.
+• Deep experience with Kubernetes in production (CRDs, operators, admission controllers).
+• Hands-on experience with Kafka, PostgreSQL, and Redis at scale (millions of events/day).
+• Strong understanding of distributed systems theory (consensus protocols, CAP theorem, eventual consistency).
+• Production experience with Terraform, Ansible, or Pulumi for infrastructure-as-code.
+• Working knowledge of cryptography fundamentals and PKI for financial systems.
+• Experience with PCI-DSS or SOC 2 compliance in a regulated environment.
+• Fluent in German and English.
+
+Nice to Have:
+• Experience with eBPF for kernel-level observability.
+• Contributions to open-source infrastructure projects.
+• Background in quantitative finance or payment processing systems.
+• Experience with chaos engineering (Litmus, Gremlin).
+
+
+Realisitc Job Description from linkedin:
+
+
+
+We’re looking for a fresh graduate or early-career AI Engineer on a builder track.
+
+This role sits between software engineering and applied AI. You will build AI-powered features end-to-end: from turning a product problem into an AI approach, to building pipelines and evaluation, to shipping reliable services in production.
+
+You’ll work with both classical ML and generative AI (LLMs, RAG, agents) where they make sense. With the rapid pace of AI, we care more about fundamentals than buzzwords. Use AI assistants to move faster, but always own correctness, privacy, safety, and user impact.
+
+Your Responsibilities 
+
+Build AI products that ship
+Design and implement AI-powered features and internal tools.
+Integrate models into real systems (APIs, workflows, dashboards, and operational processes).
+Work with LLMs in a production-ready way
+Build retrieval-augmented generation (RAG) pipelines: data sourcing, chunking, embeddings, retrieval, and prompt templates.
+Build agent-style workflows when needed (tool use, guardrails, and deterministic fallbacks).
+Own evaluation and quality
+Define what “good” means: success metrics, offline tests, and human-in-the-loop review.
+Set up evaluations for quality, safety, latency, and cost.
+Make AI reliable and safe
+Add observability: logging, tracing, and monitoring for quality regressions.
+Implement privacy and security controls (PII handling, access control, redaction where needed).
+Participate in incident response and postmortems when AI systems misbehave.
+Partner across teams
+Work with product, data, design, and engineering stakeholders to translate messy problems into measurable solutions.
+Collaborate with platform teams to use existing data pipelines, event streams, and AI tooling responsibly.
+Use AI tools thoughtfully
+Use AI assistants for prototyping, debugging, and documentation.
+Validate outputs, document assumptions, and protect sensitive data.
+Your expertise (must have) 
+
+Fresh graduate or < 1 year of relevant experience (internships and projects count).
+Solid programming fundamentals in Python (preferred) or another language used for backend services.
+Strong foundations in:
+Software engineering basics (APIs, testing, reliability)
+Data handling (SQL and/or dataframes)
+ML/AI fundamentals (training vs. inference, evaluation, overfitting intuition)
+Clear communication and a collaborative approach.
+Nice to have
+
+Hands-on experience with LLMs and/or RAG from projects (LangChain/LlamaIndex or similar patterns).
+Familiarity with model serving and deployment (REST/gRPC services, batch jobs, streaming consumers).
+Exposure to MLOps concepts (experiment tracking, model registry, monitoring).
+Familiarity with vector databases, search, or information retrieval.
+Understanding of responsible AI, privacy, and security (PII handling, access control, prompt injection awareness).
+Experience using AI assistants responsibly for coding and analysis.
+
+
+
+the tested CV:
+Saud Bin Samhan
+AI Developer
+📍 Riyadh, SA | 📞 +966 50 233 7164 | ✉️ saudbinsmhan@gmail.com | Saud Samhan | github
+PROFILE
+Computer Science student at IMSIU and current Prompt Engineer Intern at Velents.ai, a Saudi
+AI company specializing in automated hiring and workforce automation. I build end-to-end AI
+solutions, from prompt engineering and ML pipelines to full-stack deployment, using Python,
+PyTorch/TensorFlow, FastAPI, and React, with hands-on experience in AI development and
+computer vision.
+EDUCATION
+Bachelor of Computer Science 2022 – 2026
+Imam Mohammad Ibn Saud Islamic University (IMSIU)
+INTERNSHIP EXPERIENCE
+Prompt Engineer Intern — Velents.ai · Riyadh, SA Jan 2026 – Present
+• Built and deployed 10+ customized AI agents on Velents platform across multiple client use cases; work
+documented and shared with company partners.
+• Assigned a direct task by the Sales Manager to build a new agent — delivered successfully and
+received positive feedback.
+• Designed and optimized prompts for Velents AI products: AI Recruiter, Agent.sa (voice/WhatsApp),
+Velents Wisdom (RAG), and SAFHA document analysis.
+• Improved cross-team workflow using Excel-based agent tracking and documentation, enhancing
+coordination with clients and partners.
+PROJECTS
+PlanMate AI — AI-Powered Learning Plan Generator — Tuwaiq Academy · Groq Capstone Sep 2025
+• Integrated Groq Llama-3.1-8B with FastAPI backend to generate JSON-structured learning paths; built responsive
+web UI (HTML/CSS/JS).
+SILA Arabic Sign Language Recognition System — Samsung Innovation Campus · AI Capstone Sep 2025
+• Trained PyTorch CNN on ~49K images achieving 97.4% accuracy; deployed FastAPI inference service with realtime
+web UI; led 6-member team with Agile.
+HopeHub Charity Management Platform — Misk Skills · Backend Capstone Jul 2025
+• Built full-stack Flask + Supabase platform with JWT auth, 8-table schema, 15 REST APIs, and responsive admin
+dashboard with payment integration.
+TRAINING PROGRAMS
+• Velents.ai Prompt Engineering & AI Development Jan 2026 – Present
+• Samsung & Misk Skills Samsung Innovation Campus AI and Data Science July 2025 – Sept 2025
+• Misk Skills Immersive Backend Developer Program June 2025 – July 2025
+• Tuwaiq Academy Introduction to AI Engineering with Groq September 2025
+• Ministry of Communications and IT Data Visualization with Power BI Augst 2025
+• Tuwaiq Academy Power BI 101 102 103 Augst 2025
+Skills
+• AI & Prompting: Prompt Engineering, AI Agents, LLMs (Groq/Llama), PyTorch, TensorFlow, Keras, Scikitlearn,
+Pandas, NumPy.
+• Web & Backend: FastAPI, Flask, React, Node.js, RESTful APIs, Supabase.
+• Tools: Python, Java, SQL, Git, GitHub, Power BI, VS Code, Cursor.
+• Soft Skills: Adaptability and fast learning Analytical Thinking, Self-Motivation, Problem-Solving,
+Leadership.
+• Languages: Arabic (Native), English (Professional).

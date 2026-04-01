@@ -18,7 +18,22 @@ def _format_analysis(analysis: AlignmentAnalysis) -> str:
     missing_section = "\n".join(
         f"- {skill}" for skill in analysis.missing_skills
     )
-    return f"MATCHED SKILLS:\n{matched_section or 'none'}\n\nMISSING SKILLS:\n{missing_section or 'none'}"
+
+    lines = [
+        f"REQUIRED — MATCHED:\n{matched_section or 'none'}",
+        f"\nREQUIRED — MISSING:\n{missing_section or 'none'}",
+    ]
+
+    if analysis.matched_preferred or analysis.missing_preferred:
+        pref_matched = "\n".join(
+            f"- {m.skill} (MATCHED — evidence: {m.evidence})"
+            for m in analysis.matched_preferred
+        )
+        pref_missing = "\n".join(f"- {skill}" for skill in analysis.missing_preferred)
+        lines.append(f"\nPREFERRED — MATCHED:\n{pref_matched or 'none'}")
+        lines.append(f"\nPREFERRED — MISSING:\n{pref_missing or 'none'}")
+
+    return "\n".join(lines)
 
 
 def writer_node(state) -> dict:

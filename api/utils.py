@@ -25,6 +25,15 @@ def build_response(state: dict) -> AnalyzeResponse:
                 for m in analysis.matched_skills
             ],
             missing_skills=analysis.missing_skills,
+            matched_preferred=[
+                SkillMatchResponse(
+                    skill=m.skill,
+                    matched=m.matched,
+                    evidence=m.evidence,
+                )
+                for m in analysis.matched_preferred
+            ],
+            missing_preferred=analysis.missing_preferred,
             overall_fit=analysis.overall_fit,
         ),
         cv_suggestions=state["cv_suggestions"],

@@ -10,12 +10,15 @@ logger = logging.getLogger("applycheck.scorer")
 
 
 def _format_job_profile(job_profile: JobProfile) -> str:
-    return (
-        f"Title: {job_profile.title}\n"
-        f"Experience Level: {job_profile.experience_level}\n"
-        f"Required Skills: {', '.join(job_profile.required_skills)}\n"
-        f"Responsibilities:\n" + "\n".join(f"  - {r}" for r in job_profile.responsibilities)
-    )
+    lines = [
+        f"Title: {job_profile.title}",
+        f"Experience Level: {job_profile.experience_level}",
+        f"Required Skills: {', '.join(job_profile.required_skills)}",
+    ]
+    if job_profile.preferred_skills:
+        lines.append(f"Preferred Skills: {', '.join(job_profile.preferred_skills)}")
+    lines.append("Responsibilities:\n" + "\n".join(f"  - {r}" for r in job_profile.responsibilities))
+    return "\n".join(lines)
 
 
 def _format_analysis(analysis: AlignmentAnalysis) -> str:
@@ -24,11 +27,37 @@ def _format_analysis(analysis: AlignmentAnalysis) -> str:
         for m in analysis.matched_skills
     )
     missing_section = "\n".join(f"  - {skill}" for skill in analysis.missing_skills)
-    return (
-        f"Matched Skills:\n{matched_section or '  none'}\n\n"
-        f"Missing Skills:\n{missing_section or '  none'}\n\n"
-        f"Overall Fit: {analysis.overall_fit}"
+
+    lines = [
+        f"Required — Matched:\n{matched_section or '  none'}",
+        f"\nRequired — Missing:\n{missing_section or '  none'}",
+    ]
+
+    if analysis.matched_preferred or analysis.missing_preferred:
+        pref_matched = "\n".join(
+            f"  - {m.skill} (MATCHED — evidence: {m.evidence})"
+            for m in analysis.matched_preferred
+        )
+        pref_missing = "\n".join(f"  - {skill}" for skill in analysis.missing_preferred)
+        lines.append(f"\nPreferred — Matched:\n{pref_matched or '  none'}")
+        lines.append(f"\nPreferred — Missing:\n{pref_missing or '  none'}")
+
+    lines.append(f"\nOverall Fit: {analysis.overall_fit}")
+    return "\n".join(lines)
+
+
+def rescore(job_profile: JobProfile, analysis: AlignmentAnalysis, cover_letter: str) -> ScorerOutput:
+    """Standalone rescore — used by the UI when the user disputes missing skills."""
+    prompt = SCORER_PROMPT.format(
+        job_profile=_format_job_profile(job_profile),
+        analysis=_format_analysis(analysis),
+        cover_letter=cover_letter,
     )
+    raw = tracked_llm_call(
+        agent="scorer",
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return parse_llm_json(raw, ScorerOutput, agent="scorer")
 
 
 def scorer_node(state) -> dict:

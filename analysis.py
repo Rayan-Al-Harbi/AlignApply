@@ -96,8 +96,9 @@ def analyze_alignment(job_profile: JobProfile, cv_text: str, chunks_stored: bool
     matched = []
     missing = []
 
+    all_skills = job_profile.required_skills + job_profile.preferred_skills
     if skill_types is None:
-        skill_types = classify_skills(job_profile.required_skills)
+        skill_types = classify_skills(all_skills)
 
     for skill in job_profile.required_skills:
         context = get_cv_context(cv_text, skill, chunks_stored)
@@ -110,10 +111,26 @@ def analyze_alignment(job_profile: JobProfile, cv_text: str, chunks_stored: bool
         else:
             missing.append(skill)
 
+    matched_preferred = []
+    missing_preferred = []
+
+    for skill in job_profile.preferred_skills:
+        context = get_cv_context(cv_text, skill, chunks_stored)
+        skill_type = skill_types.get(skill, SkillType.HARD)
+
+        result = evaluate_skill_match(skill, context, skill_type)
+
+        if result.matched:
+            matched_preferred.append(result)
+        else:
+            missing_preferred.append(skill)
+
     overall_fit = generate_overall_fit(job_profile, matched, missing)
 
     return AlignmentAnalysis(
         matched_skills=matched,
         missing_skills=missing,
+        matched_preferred=matched_preferred,
+        missing_preferred=missing_preferred,
         overall_fit=overall_fit,
     )

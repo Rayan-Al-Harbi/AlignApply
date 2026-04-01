@@ -61,6 +61,8 @@ class SkillMatch(BaseModel):
 class AlignmentAnalysis(BaseModel):
     matched_skills: list[SkillMatch]
     missing_skills: list[str]
+    matched_preferred: list[SkillMatch] = []
+    missing_preferred: list[str] = []
     overall_fit: str  # brief narrative summary
 
 

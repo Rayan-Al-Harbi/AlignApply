@@ -62,4 +62,4 @@ ApplyCheck takes a CV and a job posting, then runs them through a pipeline of sp
 ```
 ## Status
 
-This is an active project exploring multi-agent architectures with LangGraph and RAG pipelines.
+This is an active project exploring multi-agent architectures with LangGraph and RAG.

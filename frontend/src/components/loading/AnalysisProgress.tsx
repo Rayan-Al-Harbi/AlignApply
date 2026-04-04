@@ -30,28 +30,28 @@ export default function AnalysisProgress() {
   }, [elapsed]);
 
   return (
-    <div className="animate-fade-up max-w-md mx-auto py-16">
+    <div className="animate-fade-up max-w-md mx-auto py-20">
       <div className="text-center mb-10">
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 dark:from-primary/10 dark:to-accent/10 flex items-center justify-center mx-auto mb-5">
           <svg className="w-8 h-8 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">Analyzing your application</h2>
-        <p className="text-sm text-gray-500 mt-1">This typically takes 30-60 seconds</p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Analyzing your application</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">This typically takes 30-60 seconds</p>
       </div>
 
-      <div className="space-y-3">
+      <div className="glass-card rounded-2xl p-4 space-y-2">
         {STEPS.map((step, i) => (
           <div
             key={step.label}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-500 ${
               i < activeStep
-                ? "bg-success-light/50"
+                ? "bg-success/5 dark:bg-success/10"
                 : i === activeStep
-                  ? "bg-primary-light/50"
-                  : "bg-gray-50"
+                  ? "bg-primary/5 dark:bg-primary/10"
+                  : ""
             }`}
           >
             <div className="flex-shrink-0">
@@ -66,16 +66,16 @@ export default function AnalysisProgress() {
                   <div className="w-2 h-2 rounded-full bg-white animate-pulse-dot" />
                 </div>
               ) : (
-                <div className="w-6 h-6 rounded-full bg-gray-200" />
+                <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700" />
               )}
             </div>
             <span
               className={`text-sm ${
                 i < activeStep
-                  ? "text-success font-medium"
+                  ? "text-success font-semibold"
                   : i === activeStep
-                    ? "text-primary font-medium"
-                    : "text-gray-400"
+                    ? "text-primary font-semibold"
+                    : "text-gray-400 dark:text-gray-500"
               }`}
             >
               {step.label}

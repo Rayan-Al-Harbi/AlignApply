@@ -28,19 +28,26 @@ def _format_analysis(analysis: AlignmentAnalysis) -> str:
     )
     missing_section = "\n".join(f"  - {skill}" for skill in analysis.missing_skills)
 
+    req_matched = len(analysis.matched_skills)
+    req_total = req_matched + len(analysis.missing_skills)
+
     lines = [
-        f"Required — Matched:\n{matched_section or '  none'}",
-        f"\nRequired — Missing:\n{missing_section or '  none'}",
+        f"Required Skills — {req_matched}/{req_total} matched:",
+        f"  Matched:\n{matched_section or '    none'}",
+        f"  Missing:\n{missing_section or '    none'}",
     ]
 
     if analysis.matched_preferred or analysis.missing_preferred:
+        pref_matched_count = len(analysis.matched_preferred)
+        pref_total = pref_matched_count + len(analysis.missing_preferred)
         pref_matched = "\n".join(
             f"  - {m.skill} (MATCHED — evidence: {m.evidence})"
             for m in analysis.matched_preferred
         )
         pref_missing = "\n".join(f"  - {skill}" for skill in analysis.missing_preferred)
-        lines.append(f"\nPreferred — Matched:\n{pref_matched or '  none'}")
-        lines.append(f"\nPreferred — Missing:\n{pref_missing or '  none'}")
+        lines.append(f"\nPreferred Skills — {pref_matched_count}/{pref_total} matched:")
+        lines.append(f"  Matched:\n{pref_matched or '    none'}")
+        lines.append(f"  Missing:\n{pref_missing or '    none'}")
 
     lines.append(f"\nOverall Fit: {analysis.overall_fit}")
     return "\n".join(lines)

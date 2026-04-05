@@ -276,9 +276,6 @@ export default function AnalysisProgress({ completedAgents: realCompleted }: Pro
         })}
       </div>
 
-      <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-8">
-        Progress is live from the backend pipeline
-      </p>
     </div>
   );
 }

@@ -92,7 +92,7 @@ export default function AuthPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min. 8 characters"
+              placeholder="Enter your password"
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               className="w-full rounded-xl border border-gray-200/80 dark:border-gray-600/50 px-4 py-3
                          bg-white/40 dark:bg-white/5
@@ -100,6 +100,7 @@ export default function AuthPage() {
                          focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50
                          text-sm transition-all"
             />
+            <p className="text-xs text-gray-400 dark:text-gray-500">Must be at least 8 characters</p>
           </div>
 
           {error && (
@@ -137,7 +138,7 @@ export default function AuthPage() {
             href="/"
             className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
           >
-            Continue as guest (no account needed)
+            Continue as guest
           </a>
         </div>
       </div>

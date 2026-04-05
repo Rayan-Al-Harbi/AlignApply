@@ -12,4 +12,4 @@ prometheus-client
 python-multipart
 PyMuPDF
 python-docx
-streamlit
+

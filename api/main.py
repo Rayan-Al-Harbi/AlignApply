@@ -27,6 +27,11 @@ from api.errors import friendly_error
 setup_logging()
 logger = logging.getLogger("applycheck.api")
 
+# Auto-create database tables on startup (safe no-op if they already exist)
+from db.config import engine, Base
+from db import models as _db_models  # noqa: F401 — ensure models are registered
+Base.metadata.create_all(bind=engine)
+
 
 # Simple in-memory cache for cv_text by trace_id (needed for rescore/rewrite)
 _cv_text_cache: dict[str, str] = {}

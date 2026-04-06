@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "applycheck"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["applycheck-production.up.railway.app"]
+    scheme: https
+
+remote_write:
+  - url: "${GRAFANA_REMOTE_WRITE_URL}"
+    basic_auth:
+      username: "${GRAFANA_REMOTE_WRITE_USER}"
+      password: "${GRAFANA_REMOTE_WRITE_KEY}"

@@ -1,0 +1,13 @@
+FROM prom/prometheus:latest
+
+COPY prometheus.cloud.yml /etc/prometheus/prometheus.template.yml
+
+# envsubst replaces ${VAR} placeholders with actual env var values at startup
+RUN apk add --no-cache gettext
+
+ENTRYPOINT []
+CMD sh -c "envsubst < /etc/prometheus/prometheus.template.yml > /etc/prometheus/prometheus.yml && \
+    /bin/prometheus \
+    --config.file=/etc/prometheus/prometheus.yml \
+    --storage.tsdb.path=/prometheus \
+    --web.listen-address=0.0.0.0:${PORT:-9090}"

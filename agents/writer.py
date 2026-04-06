@@ -42,7 +42,6 @@ def rewrite(job_profile, analysis, cv_text) -> dict:
         title=job_profile.title,
         responsibilities="\n".join(f"- {r}" for r in job_profile.responsibilities),
         analysis=_format_analysis(analysis),
-        overall_fit=analysis.overall_fit,
         cv_text=cv_text,
     )
     raw = tracked_llm_call(
@@ -77,7 +76,6 @@ def writer_node(state) -> dict:
             title=job_profile.title,
             responsibilities="\n".join(f"- {r}" for r in job_profile.responsibilities),
             analysis=_format_analysis(analysis),
-            overall_fit=analysis.overall_fit,
             cv_text=cv_text,
         )
 

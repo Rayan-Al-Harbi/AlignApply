@@ -197,21 +197,11 @@ def rescore_application(request: RescoreRequest):
             else:
                 missing_preferred.append(skill)
 
-        # Update overall_fit to reflect the dispute
-        disputed_list = ", ".join(sorted(disputed_names))
-        updated_fit = (
-            f"{request.analysis.overall_fit}\n\n"
-            f"UPDATE: The candidate has confirmed proficiency in the following skills: {disputed_list}. "
-            f"These skills are now verified and should be treated as fully matched — "
-            f"do not treat them as gaps or weaknesses in any dimension."
-        )
-
         analysis = AlignmentAnalysis(
             matched_skills=matched_skills,
             missing_skills=missing_skills,
             matched_preferred=matched_preferred,
             missing_preferred=missing_preferred,
-            overall_fit=updated_fit,
         )
 
         # Re-run writer if we have cached cv_text, otherwise keep original cover letter
@@ -266,7 +256,6 @@ def rescore_application(request: RescoreRequest):
                     for m in analysis.matched_preferred
                 ],
                 missing_preferred=analysis.missing_preferred,
-                overall_fit=analysis.overall_fit,
             ),
             cv_suggestions=cv_suggestions,
             cover_letter=cover_letter,

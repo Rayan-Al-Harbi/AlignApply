@@ -23,7 +23,6 @@ class AnalysisResponse(BaseModel):
     missing_skills: list[str]
     matched_preferred: list[SkillMatchResponse] = []
     missing_preferred: list[str] = []
-    overall_fit: str
 
 
 class DimensionScoreResponse(BaseModel):

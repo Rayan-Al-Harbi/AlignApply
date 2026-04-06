@@ -9,7 +9,6 @@ export interface Analysis {
   missing_skills: string[];
   matched_preferred: SkillMatch[];
   missing_preferred: string[];
-  overall_fit: string;
 }
 
 export interface DimensionScore {

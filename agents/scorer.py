@@ -49,7 +49,6 @@ def _format_analysis(analysis: AlignmentAnalysis) -> str:
         lines.append(f"  Matched:\n{pref_matched or '    none'}")
         lines.append(f"  Missing:\n{pref_missing or '    none'}")
 
-    lines.append(f"\nOverall Fit: {analysis.overall_fit}")
     return "\n".join(lines)
 
 

@@ -3,7 +3,7 @@ import time
 
 from langsmith import traceable
 from model import JobProfile, SkillMatch, AlignmentAnalysis, SkillType, SkillClassifierOutput
-from prompt import SKILL_EVAL_PROMPT, OVERALL_FIT_PROMPT, SKILL_CLASSIFIER_PROMPT, HARD_SKILL_EVAL_RULES, SOFT_SKILL_EVAL_RULES, LANGUAGE_EVAL_RULES
+from prompt import SKILL_EVAL_PROMPT, SKILL_CLASSIFIER_PROMPT, HARD_SKILL_EVAL_RULES, SOFT_SKILL_EVAL_RULES, LANGUAGE_EVAL_RULES
 from rag import retrieve_relevant_chunks, get_cv_context
 from utils import parse_llm_json, tracked_llm_call
 
@@ -65,33 +65,6 @@ def evaluate_skill_match(skill: str, context: str, skill_type: SkillType = Skill
     return result
 
 
-def generate_overall_fit(
-    job_profile: JobProfile,
-    matched: list[SkillMatch],
-    missing: list[str],
-) -> str:
-    start = time.perf_counter()
-
-    prompt = OVERALL_FIT_PROMPT.format(
-        title=job_profile.title,
-        matched_list=", ".join([m.skill for m in matched]),
-        missing_list=", ".join(missing) if missing else "none",
-    )
-
-    raw = tracked_llm_call(
-        agent="analyzer",
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    logger.info("Overall fit generated", extra={"event_data": {
-        "event": "llm_call",
-        "function": "generate_overall_fit",
-        "latency_ms": round((time.perf_counter() - start) * 1000, 2),
-    }})
-
-    return raw.strip()
-
-
 def analyze_alignment(job_profile: JobProfile, cv_text: str, chunks_stored: bool = True, skill_types: dict[str, SkillType] | None = None) -> AlignmentAnalysis:
     matched = []
     missing = []
@@ -125,12 +98,9 @@ def analyze_alignment(job_profile: JobProfile, cv_text: str, chunks_stored: bool
         else:
             missing_preferred.append(skill)
 
-    overall_fit = generate_overall_fit(job_profile, matched, missing)
-
     return AlignmentAnalysis(
         matched_skills=matched,
         missing_skills=missing,
         matched_preferred=matched_preferred,
         missing_preferred=missing_preferred,
-        overall_fit=overall_fit,
     )

@@ -42,7 +42,6 @@ def build_response(state: dict) -> AnalyzeResponse:
                 for m in analysis.matched_preferred
             ],
             missing_preferred=analysis.missing_preferred,
-            overall_fit=analysis.overall_fit,
         ),
         cv_suggestions=state["cv_suggestions"],
         cover_letter=state["cover_letter"],

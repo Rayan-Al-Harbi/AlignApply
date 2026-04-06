@@ -80,19 +80,6 @@ Evaluation rules:
 
 
 
-OVERALL_FIT_PROMPT = """
-You are summarizing a candidate's fit for a job.
-
-Job title: {title}
-Matched skills: {matched_list}
-Missing skills: {missing_list}
-
-Write a 2-3 sentence summary of the candidate's alignment with this role.
-Be specific and honest. Do not use generic filler language.
-
-Return ONLY the summary text, no JSON.
-"""
-
 
 SKILL_CLASSIFIER_PROMPT = """
 Classify each skill as "hard", "soft", or "language".
@@ -142,8 +129,6 @@ Job Responsibilities: {responsibilities}
 
 Alignment Analysis:
 {analysis}
-
-Overall fit: {overall_fit}
 
 Candidate CV:
 {cv_text}

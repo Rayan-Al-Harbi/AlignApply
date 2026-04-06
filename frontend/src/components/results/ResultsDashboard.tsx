@@ -3,6 +3,7 @@ import type { AnalyzeResponse } from "../../api/types";
 import ScoreOverview from "./ScoreOverview";
 import SkillsPanel from "./SkillsPanel";
 import CollapsibleSection from "./CollapsibleSection";
+import { AIDisclaimer } from "../Footer";
 
 interface Props {
   result: AnalyzeResponse;
@@ -201,6 +202,8 @@ export default function ResultsDashboard({
           </CollapsibleSection>
         )}
       </div>
+
+      <AIDisclaimer />
 
       {/* Rescore overlay */}
       {isRescoring && (

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { AIDisclaimer } from "../Footer";
 
 interface AgentConfig {
   key: string;
@@ -276,6 +277,7 @@ export default function AnalysisProgress({ completedAgents: realCompleted }: Pro
         })}
       </div>
 
+      <AIDisclaimer />
     </div>
   );
 }

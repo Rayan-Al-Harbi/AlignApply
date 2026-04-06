@@ -4,7 +4,7 @@ import time
 from langsmith import traceable
 from model import JobProfile, SkillMatch, AlignmentAnalysis, SkillType, SkillClassifierOutput
 from prompt import SKILL_EVAL_PROMPT, SKILL_CLASSIFIER_PROMPT, HARD_SKILL_EVAL_RULES, SOFT_SKILL_EVAL_RULES, LANGUAGE_EVAL_RULES
-from rag import retrieve_relevant_chunks, get_cv_context
+from rag import retrieve_relevant_chunks, get_cv_context, precompute_skill_embeddings
 from utils import parse_llm_json, tracked_llm_call
 
 logger = logging.getLogger("applycheck.analysis")
@@ -72,6 +72,9 @@ def analyze_alignment(job_profile: JobProfile, cv_text: str, chunks_stored: bool
     all_skills = job_profile.required_skills + job_profile.preferred_skills
     if skill_types is None:
         skill_types = classify_skills(all_skills)
+
+    # Pre-embed all skill queries in one batch call instead of one-by-one
+    precompute_skill_embeddings(all_skills)
 
     for skill in job_profile.required_skills:
         context = get_cv_context(cv_text, skill, chunks_stored)

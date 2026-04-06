@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Footer from "../Footer";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 const LINKEDIN_CLIENT_ID = import.meta.env.VITE_LINKEDIN_CLIENT_ID || "";
@@ -222,6 +223,7 @@ export default function AuthPage() {
           </a>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

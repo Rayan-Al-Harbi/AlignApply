@@ -20,11 +20,32 @@ else:
     qdrant = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 
 COLLECTION_NAME = "cv_chunks"
-EMBEDDING_DIM = 384    
+EMBEDDING_DIM = 384
+
+# Cache embeddings to avoid redundant model calls
+_embedding_cache: dict[str, list[float]] = {}
 
 
 def get_embedding(text: str) -> list[float]:
-    return embedding_model.encode(text).tolist()
+    if text in _embedding_cache:
+        return _embedding_cache[text]
+    vec = embedding_model.encode(text).tolist()
+    _embedding_cache[text] = vec
+    return vec
+
+
+def batch_embed(texts: list[str]) -> list[list[float]]:
+    """Embed multiple texts in a single model call — much faster than one-by-one."""
+    uncached = [t for t in texts if t not in _embedding_cache]
+    if uncached:
+        vectors = embedding_model.encode(uncached).tolist()
+        for t, v in zip(uncached, vectors):
+            _embedding_cache[t] = v
+    return [_embedding_cache[t] for t in texts]
+
+
+def clear_embedding_cache():
+    _embedding_cache.clear()
 
 
 def store_cv_chunks(chunks: list[str]):
@@ -37,13 +58,11 @@ def store_cv_chunks(chunks: list[str]):
             ),
         )
 
+    # Batch embed all chunks in one call
+    vectors = batch_embed(chunks)
     points = [
-        PointStruct(
-            id=i,
-            vector=get_embedding(chunk),
-            payload={"text": chunk},
-        )
-        for i, chunk in enumerate(chunks)
+        PointStruct(id=i, vector=vec, payload={"text": chunk})
+        for i, (chunk, vec) in enumerate(zip(chunks, vectors))
     ]
 
     qdrant.upsert(collection_name=COLLECTION_NAME, points=points)
@@ -74,6 +93,11 @@ def keyword_search(skill: str) -> list[str]:
         with_payload=True,
     )[0]
     return [p.payload["text"] for p in all_chunks if skill.lower() in p.payload["text"].lower()]
+
+
+def precompute_skill_embeddings(skills: list[str]):
+    """Pre-embed all skills in a single batch call before the per-skill loop."""
+    batch_embed(skills)
 
 
 def get_cv_context(cv_text: str, skill: str, chunks_stored: bool) -> str:

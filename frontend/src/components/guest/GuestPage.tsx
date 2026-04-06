@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import UploadForm from "../upload/UploadForm";
 import AnalysisProgress from "../loading/AnalysisProgress";
 import ResultsDashboard from "../results/ResultsDashboard";
+import Footer from "../Footer";
 import { useAnalysis } from "../../hooks/useAnalysis";
 
 export default function GuestPage() {
@@ -72,6 +73,7 @@ export default function GuestPage() {
           </button>
         </div>
       )}
+      <Footer />
     </>
   );
 }

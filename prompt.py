@@ -155,6 +155,7 @@ Rules:
 - CRITICAL: The alignment analysis above is the single source of truth. Every skill under MATCHED is a confirmed, verified strength — present it confidently. The ONLY gaps are skills explicitly listed under MISSING. Never mention, imply, or hedge about any matched skill being weak or underdeveloped.
 - If there are no skills under MISSING, do not mention any gaps or areas of growth at all.
 - Do not use generic filler language. Every sentence should be specific to this candidate and role.
+- Final check: re-read the cover letter before returning. Remove any claim about tools, practices, metrics, or achievements that do not appear verbatim or near-verbatim in the CV text above.
 """
 
 

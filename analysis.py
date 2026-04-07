@@ -40,8 +40,15 @@ _RULES_BY_TYPE = {
 
 
 def _core_skill(skill: str) -> str:
-    """Strip parenthetical qualifiers so the LLM evaluates the core competency."""
-    return skill.split("(")[0].strip() if "(" in skill else skill
+    """Normalize skill text for evaluation: strip parenthetical qualifiers
+    and convert slash-separated alternatives into a comma list."""
+    # Strip parenthetical qualifiers: "Container orchestration (K8s)" → "Container orchestration"
+    core = skill.split("(")[0].strip() if "(" in skill else skill
+    # Convert slash-separated alternatives: "LangChain/LlamaIndex" → "LangChain or LlamaIndex"
+    if "/" in core:
+        parts = [p.strip() for p in core.split("/")]
+        core = " or ".join(parts)
+    return core
 
 
 @traceable(name="skill_evaluation", metadata={"component": "analyzer"})

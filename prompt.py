@@ -134,6 +134,7 @@ Matching:
 - Match if the skill is explicitly mentioned, or a direct technical synonym exists (a specific implementation of the skill, e.g., PostgreSQL → SQL, React → JavaScript).
 - For broad foundational skills, match if the CV shows proficiency through specific tools, languages, or projects under that umbrella.
 - When a skill has parenthetical qualifiers, match on the core competency — qualifiers describe ideal scope, not strict individual requirements.
+- When a skill lists alternatives with "or" (e.g., "LangChain or LlamaIndex"), match if the CV mentions any one of them.
 - Do not infer from loosely related technologies.
 
 Depth:
@@ -238,7 +239,12 @@ Calibration:
 
 Per-dimension scoring:
 - Skill Match: base score = required skill match rate (matched / total * 100). Then adjust with preferred skills as a secondary modifier (up to ~10 points either way). Do not average required and preferred as equals.
-- Experience Relevance: score how well the candidate's work history (roles, projects, duration, domain) maps to the job's responsibilities and level. Do not re-evaluate individual skills — that is Skill Match's job. If a skill is missing, it is already penalized in Skill Match; do not penalize Experience Relevance again for the same gap. Only cite experience gaps that are genuinely about the type, depth, or domain of work performed — not about whether a specific skill was used.
+- Experience Relevance: score how well the candidate's work history (roles, projects, duration, domain) maps to the job's responsibilities and level.
+  - STRICT BOUNDARY — this dimension must NOT reference any individual skill, technology, or responsibility by name. Do not say "lacks observability experience" or "no evidence of privacy controls" — those are skill judgments that belong in Skill Match. Experience Relevance ONLY assesses three things:
+    (1) Domain fit: are the candidate's roles/projects in a relevant field?
+    (2) Level fit: does the experience level match what the job requires?
+    (3) Breadth: how much relevant work has the candidate done (number of roles, duration, variety)?
+  - If a skill is matched, it is settled — do not question its depth here. If it is missing, Skill Match already penalizes it.
   - If "Candidate Experience Level" says "Not specified by the job", score purely on how well experience maps to responsibilities — do not penalize for years.
   - Otherwise, compare against the required level. By default, only professional (paid/industry) positions count toward years-of-experience requirements. However, if the job explicitly accepts non-professional experience (e.g., "internships and projects count", "academic projects welcome"), then those experience types count fully — do not penalize the candidate for lacking paid/industry experience when the job itself does not require it.
   - Score proportionally lower only when there is a genuine gap between what the job requires and what the candidate has.

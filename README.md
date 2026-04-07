@@ -19,7 +19,7 @@ ApplyCheck takes a CV and a job posting, then runs them through a pipeline of sp
 
 ```
                                        ┌──────────────────┐
-                                       │ Supervisor Agent  │
+                                       │ Supervisor Agent │
                                        └─────────┬────────┘
                                                  │
                                 ┌────────────────┼─────────────────┐

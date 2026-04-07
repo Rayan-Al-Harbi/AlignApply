@@ -25,7 +25,7 @@ ApplyCheck takes a CV and a job posting, then runs them through a pipeline of sp
                                 ┌────────────────┼─────────────────┐
                                 ▼                ▼                 ▼
                         ┌────────────────┐ ┌──────────────┐ ┌──────────────┐
-                        │ Analyzer Agent │ │ Writer Agent  │ │ Scorer Agent │
+                        │ Analyzer Agent │ │ Writer Agent │ │ Scorer Agent │
                         └─────────┬──────┘ └───────┬──────┘ └───────┬──────┘
                                   │                │                │
                                   ▼                ▼                ▼

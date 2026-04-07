@@ -112,5 +112,5 @@ docker compose up --build  # app + PostgreSQL + Qdrant + Prometheus + Grafana
 
 ## Status
 
-This is an active project exploring multi-agent architectures with LangGraph and RAG pipelines.
+This is an active project exploring multi-agent architecture with LangGraph and RAG pipelines.
 

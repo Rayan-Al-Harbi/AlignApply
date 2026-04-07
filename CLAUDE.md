@@ -34,7 +34,7 @@ Extraction + RAG + alignment analysis pipeline:
 
 1. **`model.py`** — Pydantic models: `JobProfile`, `CandidateProfile` (with nested `Experience` and `Education`), `SkillMatch` (skill, matched, evidence), `AlignmentAnalysis` (matched_skills, missing_skills, overall_fit), `DimensionScore` (dimension, score, weight, reasoning), and `ScorerOutput` (dimensions, overall_score, summary). `ScorerOutput` has a `@model_validator` that corrects `overall_score` to the weighted average if the LLM drifts by more than 2 points.
 
-2. **`prompt.py`** — Prompt templates: `JOB_EXTRACTION_PROMPT`, `CV_EXTRACTION_PROMPT`, `SKILL_EVAL_PROMPT` (placeholders: `{skill}`, `{context}`, `{rules}`), `OVERALL_FIT_PROMPT` (placeholders: `{title}`, `{matched_list}`, `{missing_list}`), `SKILL_CLASSIFIER_PROMPT`, `WRITER_PROMPT` (placeholders: `{title}`, `{responsibilities}`, `{analysis}`, `{overall_fit}`, `{cv_text}` — analysis includes per-skill evidence inline), and `SCORER_PROMPT` (placeholders: `{job_profile}`, `{analysis}`, `{cover_letter}` — hardcodes three weighted dimensions: Skill Match 35%, Experience Relevance 35%, Overall Presentation 30%). Three rule blocks injected per skill type: `HARD_SKILL_EVAL_RULES` (explicit mention or direct technical synonym), `SOFT_SKILL_EVAL_RULES` (behavioral inference from work history — does not require exact skill name in CV), `LANGUAGE_EVAL_RULES` (CV language or explicit mention). Use double-braces `{{}}` for literal JSON and single-brace for `.format()` injection.
+2. **`prompt.py`** — Prompt templates: `JOB_EXTRACTION_PROMPT`, `CV_EXTRACTION_PROMPT`, `SKILL_EVAL_PROMPT` (placeholders: `{skill}`, `{context}`, `{rules}`), `SKILL_CLASSIFIER_PROMPT`, `WRITER_PROMPT` (placeholders: `{title}`, `{responsibilities}`, `{analysis}`, `{cv_text}` — analysis includes per-skill evidence inline; rules enforce matched skills as single source of truth, block trivial rephrasing suggestions), and `SCORER_PROMPT` (placeholders: `{job_profile}`, `{analysis}`, `{cover_letter}` — three weighted dimensions: Skill Match 35%, Experience Relevance 35%, Overall Presentation 30%; experience level gap penalizes Experience Relevance proportionally). Three rule blocks injected per skill type: `HARD_SKILL_EVAL_RULES` (explicit mention or direct technical synonym), `SOFT_SKILL_EVAL_RULES` (behavioral inference from work history — does not require exact skill name in CV), `LANGUAGE_EVAL_RULES` (CV language or explicit mention). Use double-braces `{{}}` for literal JSON and single-brace for `.format()` injection.
 
 3. **`extraction.py`** — LLM calls via `tracked_llm_call(agent="analyzer")` at temperature 0. Imports directly from `model.py` and `prompt.py`. `extract_job_profile` and `extract_cv_profile` are decorated with `@traceable` for LangSmith tracing. Each function logs latency and key output fields via structured logging.
 
@@ -60,9 +60,9 @@ Extraction + RAG + alignment analysis pipeline:
 
 14. **`logging_config.py`** — `JSONFormatter` (custom `logging.Formatter` that outputs structured JSON with timestamp, level, logger name, message, and any extra `event_data` fields) and `setup_logging(level="INFO")` (configures root logger with JSON handler to stdout). Called at startup in both `api/main.py` and `main.py`.
 
-15. **`api/main.py`** — FastAPI application. Registers routers: `auth_router`, `cv_router`, `analysis_router`. Guest endpoints: `GET /health`, `GET /metrics` (Prometheus), `POST /analyze` (JSON), `POST /analyze/upload` (multipart file upload), `POST /rescore` (skill dispute + rescore). CORS middleware enabled. Caches `cv_text` by `trace_id` in-memory for rescore/rewrite. Serves the React frontend as static files from `/static` (built into Docker image via multi-stage build). Catch-all route serves `index.html` for client-side routing.
+15. **`api/main.py`** — FastAPI application. Registers routers: `auth_router`, `cv_router`, `analysis_router`. Guest endpoints: `GET /health`, `GET /metrics` (Prometheus), `POST /analyze` (JSON), `POST /analyze/upload` (multipart file upload), `POST /rescore` (skill dispute + rescore). CORS middleware enabled. Caches `cv_text` by `trace_id` in bounded `OrderedDict` (`_CV_CACHE_MAX=200`) for rescore/rewrite. `/rescore` updates the DB `Analysis` record when `analysis_id` is provided (authenticated rescore). Serves the React frontend as static files from `/static` (built into Docker image via multi-stage build). Catch-all route serves `index.html` for client-side routing.
 
-16. **`api/schemas.py`** — Request/response Pydantic models. `AnalyzeRequest`, `AnalyzeResponse` (includes `job_profile: JobProfileResponse`, `analysis: AnalysisResponse`, `cv_suggestions`, `cover_letter`, `score: ScoreResponse`, `trace_id`). `RescoreRequest` (accepts `trace_id`, `job_profile`, `analysis`, `cover_letter`, `disputed_skills: list[DisputedSkill]`). `DisputedSkill` has `skill` and `category` ("required" or "preferred").
+16. **`api/schemas.py`** — Request/response Pydantic models. `AnalyzeRequest`, `AnalyzeResponse` (includes `job_profile: JobProfileResponse`, `analysis: AnalysisResponse`, `cv_suggestions`, `cover_letter`, `score: ScoreResponse`, `trace_id`, `analysis_id: str | None`). `RescoreRequest` (accepts `trace_id`, `job_profile`, `analysis`, `cover_letter`, `disputed_skills: list[DisputedSkill]`, `analysis_id: str | None`). `DisputedSkill` has `skill` and `category` ("required" or "preferred").
 
 17. **`api/utils.py`** — `build_response(state)` maps internal domain models to API response schemas. `extract_text_from_file(file)` extracts text from PDF (PyMuPDF), DOCX (python-docx), or TXT uploads.
 
@@ -72,7 +72,7 @@ Extraction + RAG + alignment analysis pipeline:
 
 20. **`api/cv.py`** — CV persistence endpoints. `POST /cv/upload` (extract text from file, run `extract_cv_profile()` via LLM, store/update in DB). `GET /cv` (retrieve stored CV with profile, timestamps). One CV per user — update overwrites.
 
-21. **`api/analysis.py`** — Authenticated analysis + history endpoints. `POST /analyze/auth` returns an SSE stream (`text/event-stream`) — emits `agent_complete` events as each LangGraph node finishes (analyzer, writer, scorer), then a final `result` event with the full response. Uses `app_graph.stream()` to get real-time node completions. `GET /analyses` (paginated summary list). `GET /analyses/{id}` (full detail). `DELETE /analyses/{id}` (delete single). `DELETE /analyses` (clear all). `_determine_cv_changed()` compares `cv.updated_at` vs last analysis timestamp.
+21. **`api/analysis.py`** — Authenticated analysis + history endpoints. `POST /analyze/auth` returns an SSE stream (`text/event-stream`) — emits `agent_complete` events as each LangGraph node finishes (analyzer, writer, scorer), then a final `result` event with the full response including `analysis_id` (DB record ID for rescore persistence). Uses `app_graph.stream()` to get real-time node completions. `GET /analyses` (paginated summary list). `GET /analyses/{id}` (full detail). `DELETE /analyses/{id}` (delete single). `DELETE /analyses` (clear all). `_determine_cv_changed()` compares `cv.updated_at` vs last analysis timestamp.
 
 22. **`db/config.py`** — SQLAlchemy engine, `SessionLocal` session factory, `get_db` dependency. `DATABASE_URL` from env (default: `postgresql://applycheck:applycheck@localhost:5432/applycheck`).
 
@@ -93,7 +93,8 @@ Extraction + RAG + alignment analysis pipeline:
     - `src/components/loading/AnalysisProgress.tsx` — Agentic thinking UI: 3 agent cards (Analyzer, Writer, Scorer) with typewriter reasoning text, thought log, completion states. Replaces old 5-step progress indicator.
     - `src/components/history/HistoryPage.tsx` — Timeline of past analyses with CV change dividers, score circles, pagination.
     - `src/components/history/AnalysisDetailPage.tsx` — Full analysis detail: score overview, dimension bars, skills badges, cover letter with copy, CV suggestions.
-    - `src/components/results/` — ResultsDashboard, ScoreOverview, SkillsPanel, DisputeBar, CollapsibleSection (unchanged).
+    - `src/components/Footer.tsx` — `Footer` (author link, used only on AuthPage/login) and `AIDisclaimer` (AI disclaimer text, used on all other pages: Dashboard, GuestPage, AnalyzePage, HistoryPage, AnalysisDetailPage, AnalysisProgress, ResultsDashboard).
+    - `src/components/results/` — ResultsDashboard, ScoreOverview, SkillsPanel, DisputeBar, CollapsibleSection.
     - `vite.config.ts` — Dev proxy routes `/auth`, `/cv`, `/analyze`, `/analyses`, `/rescore`, `/health` to `localhost:8000`.
 
 25. **`Dockerfile`** — Multi-stage build. Stage 1: Node 20 builds the React frontend (`npm run build`). Stage 2: Python 3.11-slim installs requirements, copies app code + built frontend into `/app/static`. Uses shell-form CMD to read Railway's `$PORT` env var: `CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}`.
@@ -114,9 +115,10 @@ Extraction + RAG + alignment analysis pipeline:
 Users can dispute missing skills after analysis:
 1. Frontend shows missing skills with checkboxes
 2. User checks skills they actually have → clicks "Recalculate Score"
-3. `POST /rescore` receives disputed skills, moves them from missing → matched (evidence: "Confirmed by candidate")
-4. Backend re-runs writer (new cover letter reflecting disputes) + scorer (new scores)
-5. Frontend animates to updated scores; disputed skills show as purple badges
+3. `POST /rescore` receives disputed skills, moves them from missing → matched (evidence: "Demonstrated through professional experience and practical application.")
+4. Backend re-runs writer (new cover letter treating disputed skills as confirmed strengths) + scorer (new scores)
+5. If `analysis_id` is provided (authenticated user), the DB `Analysis` record is updated in-place so history/dashboard reflect the latest results
+6. Frontend animates to updated scores; disputed skills show as purple badges
 
 
 ## Progress

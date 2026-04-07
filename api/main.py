@@ -221,8 +221,30 @@ def rescore_application(request: RescoreRequest):
             cover_letter = request.cover_letter
             cv_suggestions = request.cv_suggestions
 
-        # Rescore
-        scorer_output = rescore(jp, analysis, cover_letter)
+        # Rescore — get candidate experience from DB if authenticated
+        from agents.scorer import _job_requires_experience_years, _format_experience_summary
+        if _job_requires_experience_years(jp.experience_level) and request.analysis_id:
+            try:
+                from db.config import SessionLocal
+                from db.models import Analysis as AnalysisModel, CV as CVModel
+                exp_db = SessionLocal()
+                try:
+                    record = exp_db.query(AnalysisModel).filter(AnalysisModel.id == request.analysis_id).first()
+                    if record:
+                        cv_record = exp_db.query(CVModel).filter(CVModel.user_id == record.user_id).first()
+                        if cv_record and cv_record.profile:
+                            candidate_experience = _format_experience_summary(cv_record.profile.get("experiences", []))
+                        else:
+                            candidate_experience = "Not available"
+                    else:
+                        candidate_experience = "Not available"
+                finally:
+                    exp_db.close()
+            except Exception:
+                candidate_experience = "Not available"
+        else:
+            candidate_experience = "Not specified by the job — do not evaluate experience gap"
+        scorer_output = rescore(jp, analysis, cover_letter, candidate_experience=candidate_experience)
 
         # Apply score floor: disputing skills should never lower any dimension
         if request.original_score:

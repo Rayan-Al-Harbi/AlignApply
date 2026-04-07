@@ -7,6 +7,7 @@ class ApplicationState(BaseModel):
     # --- Inputs ---
     job_description: str
     cv_text: str
+    cv_experiences: Optional[list[dict]] = None
 
     # --- Phase 1 outputs ---
     job_profile: Optional[JobProfile] = None

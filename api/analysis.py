@@ -98,6 +98,7 @@ def analyze_authenticated(
     cv_changed = _determine_cv_changed(db, user)
     user_id = user.id
     cv_text = cv.raw_text
+    cv_experiences = cv.profile.get("experiences", []) if cv.profile else []
     job_description = request.job_description
 
     # Map LangGraph node names to frontend agent names
@@ -109,6 +110,7 @@ def analyze_authenticated(
             initial_state = {
                 "job_description": job_description,
                 "cv_text": cv_text,
+                "cv_experiences": cv_experiences,
                 "trace_id": trace_id,
             }
 

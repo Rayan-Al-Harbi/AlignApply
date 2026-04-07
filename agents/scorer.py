@@ -1,4 +1,5 @@
 import logging
+import re
 import time
 
 from model import AlignmentAnalysis, JobProfile, ScorerOutput
@@ -52,12 +53,28 @@ def _format_analysis(analysis: AlignmentAnalysis) -> str:
     return "\n".join(lines)
 
 
-def rescore(job_profile: JobProfile, analysis: AlignmentAnalysis, cover_letter: str) -> ScorerOutput:
+def _job_requires_experience_years(experience_level: str) -> bool:
+    """Check if the job profile specifies a concrete number of years."""
+    if not experience_level:
+        return False
+    return bool(re.search(r'\d+\s*\+?\s*(?:year|yr)', experience_level, re.IGNORECASE))
+
+
+def _format_experience_summary(experiences: list[dict]) -> str:
+    """Format experience durations from LLM-extracted CV profile."""
+    if not experiences:
+        return "No professional experience listed"
+    lines = [f"  - {e.get('role', 'Role')} at {e.get('company', 'Company')} ({e.get('duration', 'unknown duration')})" for e in experiences]
+    return f"{len(experiences)} position(s):\n" + "\n".join(lines)
+
+
+def rescore(job_profile: JobProfile, analysis: AlignmentAnalysis, cover_letter: str, candidate_experience: str = "Not available") -> ScorerOutput:
     """Standalone rescore — used by the UI when the user disputes missing skills."""
     prompt = SCORER_PROMPT.format(
         job_profile=_format_job_profile(job_profile),
         analysis=_format_analysis(analysis),
         cover_letter=cover_letter,
+        candidate_experience=candidate_experience,
     )
     raw = tracked_llm_call(
         agent="scorer",
@@ -81,10 +98,17 @@ def scorer_node(state) -> dict:
         analysis = state.alignment_analysis
         cover_letter = state.cover_letter
 
+        # Only include candidate experience when the job specifies years
+        if _job_requires_experience_years(job_profile.experience_level) and state.cv_experiences:
+            candidate_experience = _format_experience_summary(state.cv_experiences)
+        else:
+            candidate_experience = "Not specified by the job — do not evaluate experience gap"
+
         prompt = SCORER_PROMPT.format(
             job_profile=_format_job_profile(job_profile),
             analysis=_format_analysis(analysis),
             cover_letter=cover_letter,
+            candidate_experience=candidate_experience,
         )
 
         raw = tracked_llm_call(

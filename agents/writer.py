@@ -47,7 +47,7 @@ def rewrite(job_profile, analysis, cv_text) -> dict:
     raw = tracked_llm_call(
         agent="writer",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
+        temperature=0.3,
     )
     clean = raw.strip().strip("```json").strip("```").strip()
     parsed = json.loads(clean, strict=False)
@@ -82,7 +82,7 @@ def writer_node(state) -> dict:
         raw = tracked_llm_call(
             agent="writer",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
+            temperature=0.3,
         )
 
         logger.info("Writer LLM call complete", extra={"event_data": {

@@ -53,32 +53,6 @@ export default function ResultsDashboard({
           <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{result.job_title}</h2>
         </div>
         <div className="flex items-center gap-2">
-          {disputedSkills.size > 0 && (
-            <button
-              onClick={onSubmitDispute}
-              disabled={isRescoring}
-              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2
-                         bg-disputed text-white hover:bg-disputed/90 hover:scale-105
-                         disabled:opacity-50 disabled:cursor-not-allowed animate-fade-up"
-            >
-              {isRescoring ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Rescoring...
-                </>
-              ) : (
-                <>
-                  <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
-                    {disputedSkills.size}
-                  </span>
-                  Recalculate
-                </>
-              )}
-            </button>
-          )}
           <button
             onClick={() => window.location.href = "/dashboard"}
             className="px-4 py-2 rounded-xl text-sm font-semibold transition-all
@@ -122,6 +96,34 @@ export default function ResultsDashboard({
               disputedSkills={disputedSkills}
               onToggleDispute={onToggleDispute}
             />
+            {disputedSkills.size > 0 && (
+              <div className="mt-4 animate-fade-up">
+                <button
+                  onClick={onSubmitDispute}
+                  disabled={isRescoring}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2
+                             bg-disputed text-white hover:bg-disputed/90
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRescoring ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Rescoring...
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
+                        {disputedSkills.size}
+                      </span>
+                      Reanalyze with Selected Skills
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

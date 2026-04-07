@@ -18,6 +18,7 @@ class Experience(BaseModel):
     role: str
     duration: str
     description: str
+    type: str = "professional"
 
 
 class Education(BaseModel):

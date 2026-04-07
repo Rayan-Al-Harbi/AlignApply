@@ -1,7 +1,7 @@
 import logging
 import time
 
-from extraction import extract_job_profile
+from extraction import extract_job_profile, extract_cv_profile
 from chunking import chunk_cv
 from rag import store_cv_chunks, cleanup_collection
 from analysis import analyze_alignment, classify_skills
@@ -58,6 +58,12 @@ def analyzer_node(state) -> dict:
             trace_id=trace_id,
         )
 
+        # Extract CV profile for experience-level scoring (guest users)
+        cv_experiences = state.cv_experiences
+        if cv_experiences is None:
+            cv_profile = extract_cv_profile(cv_text)
+            cv_experiences = [e.model_dump() for e in cv_profile.experiences]
+
         # Clean up per-request vector collection
         cleanup_collection(trace_id)
 
@@ -75,6 +81,7 @@ def analyzer_node(state) -> dict:
         return {
             "job_profile": job_profile,
             "alignment_analysis": alignment,
+            "cv_experiences": cv_experiences,
             "current_agent": "writer",
         }
     except Exception:

@@ -10,18 +10,42 @@ Return ONLY valid JSON matching this exact schema:
     "responsibilities": ["string"]
 }}
 
-Rules:
-- If a field is not found, use an empty string or empty list as appropriate.
+What counts as a skill:
+- An evaluatable professional competency you could verify on a CV: a technology, framework, methodology, tool, or professional capability.
+- Include soft skills and language proficiency only when explicitly listed as a requirement or screening criterion — not when merely implied by the role context.
+  - YES: "Strong communication skills required" → extract "Communication"
+  - NO: "You'll work with cross-functional teams" → this describes the environment, not a screened skill
+- Each skill should be short and focused — a core competency, not a sentence or a generic noun.
+- Do not extract the job's core function as a skill. If something describes what the role *is* rather than a specific, verifiable competency the candidate brings, it belongs in responsibilities, not skills.
+  - A "Backend Engineer" JD should not have "Backend development" as a skill — that is the role itself. Extract the specific competencies instead (e.g., "SQL", "REST APIs", "Docker").
+  - A "Data Analyst" JD should not have "Data analysis" as a skill — extract "SQL", "Tableau", "Statistical modeling", etc.
+
+Granularity:
+- When listed items are widely recognized as distinct competencies (e.g., Python, Java, SQL), extract each individually.
+- When a list groups items in a single bullet or parenthetical as facets of one domain, extract the umbrella skill only.
+  - "Strong understanding of backend systems, APIs, auth, and data stores" → "Backend systems" (one competency, not four)
+  - "Experience with Redis, Kafka, or RabbitMQ" → "Message brokers / caching" (interchangeable examples)
+- When a responsibility describes a composite practice with sub-components, extract the practice as one skill — do not also extract individual sub-tasks that fall under it.
+  - "Build data pipelines: ingestion, transformation, validation, and loading" → "Data pipelines" (not also "data validation")
+  - "Own deployment, monitoring, prompt management, and cost control" → "LLMOps" (not also "monitoring" separately)
+- Deduplicate: if a broader skill already covers a narrower one, keep only the broader one.
+  - "Python" + "Programming fundamentals" → keep only "Python"
+  - "Kubernetes" + "Container orchestration" → keep only "Container orchestration" (or "Kubernetes" if the JD names it specifically)
+
+Where to look:
+- Extract skills from both the requirements and responsibilities sections.
+- From responsibilities: only extract a skill when the responsibility implies a distinct, verifiable competency that a candidate either has or lacks. Generic workplace activities that any professional does (documenting work, following compliance policies, integrating with existing systems) are not skills — they are just responsibilities.
+  - YES: "Set up logging, tracing, and alerting for production services" → extract "Observability" (a distinct technical discipline)
+  - YES: "Design and run A/B tests to measure feature impact" → extract "A/B testing" (a verifiable practice)
+  - NO: "Write documentation for internal teams" → this is a routine task, not a skill to screen for
+  - NO: "Ensure systems comply with security policies" → this is an expectation, not a distinct competency
+- Strictly respect required vs preferred: anything under "nice to have", "preferred", "bonus", or similar goes in preferred_skills only. If a skill appears in both responsibilities (required context) and preferred section, place it in required_skills.
+
+General:
+- If a field is not found, use an empty string or empty list.
 - Do not invent information. Only extract what is explicitly stated.
-- Each skill must be an evaluatable professional competency — something you could verify on a CV (a technology, framework, methodology, tool, certification, or professional capability).
-- Do NOT extract generic nouns that are domain context rather than skills (e.g., "evidence", "approvals", "data", "state", "controlled issuance").
-- When a list gives examples of a category (e.g., "frameworks such as LangGraph / CrewAI / AutoGen"), extract the category ("agent orchestration frameworks") — not each example separately.
-- Avoid duplicates and subsumption: if a broader skill already covers a narrower one, keep only the broader one.
-- When a requirement describes a domain and lists its components to clarify scope, extract the domain — not each component as a separate skill.
-- Each extracted skill should be short and focused — a core competency, not a sentence. Do not bundle unrelated qualifiers or context into a single skill.
-- Drop single generic words that are too vague to meaningfully verify on a CV.
-- Include soft skills (communication, collaboration, leadership) and language proficiency when stated.
-- Strictly respect required vs preferred sections. Any skills listed under "nice to have", "preferred", "bonus", "strong advantage", or similar sections go in preferred_skills, not required_skills.
+- Preserve specificity: when the JD names specific tools, languages, or domains, keep them rather than generalizing to a vaguer term.
+- When the JD lists frameworks with "or similar", name the specific examples in parentheses (e.g., "Deep learning frameworks (TensorFlow, PyTorch)").
 
 Job Description:
 {job_description_text}
@@ -29,7 +53,7 @@ Job Description:
 
 
 CV_EXTRACTION_PROMPT = """
-You are a CV qualification parser. Extract structured information from the following CV.
+You are a CV parser. Extract structured information from the following CV.
 
 Return ONLY valid JSON matching this exact schema:
 {{
@@ -40,7 +64,8 @@ Return ONLY valid JSON matching this exact schema:
             "company": "string",
             "role": "string",
             "duration": "string",
-            "description": "string"
+            "description": "string",
+            "type": "professional | academic | extracurricular"
         }}
     ],
     "education": [
@@ -54,11 +79,12 @@ Return ONLY valid JSON matching this exact schema:
 }}
 
 Rules:
-- If a field is not found, use an empty string or empty list as appropriate.
+- If a field is not found, use an empty string or empty list.
 - Do not invent information. Only extract what is explicitly stated.
 - Skills should be concise (e.g., "Python", "Project Management", "AWS").
+- Experience type: "professional" = paid employment, "academic" = research/teaching/university labs, "extracurricular" = student clubs, volunteer work, hackathons. Infer from context clues like company names, university affiliations, and club mentions.
 
-CV Description:
+CV:
 {cv_description_text}
 """
 
@@ -104,19 +130,20 @@ Return ONLY valid JSON:
 
 
 HARD_SKILL_EVAL_RULES = """
-- Only mark matched if the skill is explicitly mentioned or a direct technical synonym exists.
-- A direct technical synonym is a specific implementation of the evaluated skill (e.g., PostgreSQL, MySQL, SQLite → SQL; React, Vue → JavaScript).
-- For broad foundational skills, match if the CV demonstrates proficiency through specific languages, frameworks, or projects that fall under that umbrella.
-- When a skill includes qualifiers or context in parentheses, match based on the core competency. The qualifiers describe the ideal scope, not strict requirements that must each appear individually.
+Matching:
+- Match if the skill is explicitly mentioned, or a direct technical synonym exists (a specific implementation of the skill, e.g., PostgreSQL → SQL, React → JavaScript).
+- For broad foundational skills, match if the CV shows proficiency through specific tools, languages, or projects under that umbrella.
+- When a skill has parenthetical qualifiers, match on the core competency — qualifiers describe ideal scope, not strict individual requirements.
 - Do not infer from loosely related technologies.
+
+Depth:
+- When a skill implies sustained professional-grade work, require evidence of professional or production-scale experience — not just using a related technology in a personal or academic project.
 """
 
 SOFT_SKILL_EVAL_RULES = """
-- Soft skills are rarely stated explicitly. You MUST infer them from behavioral evidence in the CV.
-- Professional work experience is strong evidence. Building software in a team, maintaining services, collaborating across roles, holding multiple professional positions — all demonstrate soft skills in action.
-- Do not require the exact skill name to appear in the CV. Look for actions and responsibilities that exercise the skill.
-- Use your judgment to map actions to skills. If a responsibility or achievement would require exercising the evaluated skill, that counts as evidence.
-- Mark matched if there is reasonable behavioral evidence. Explain your inference by citing the specific CV content.
+- Infer from behavioral evidence — do not require the exact skill name. If a responsibility or achievement would require exercising the skill, that counts.
+- Professional work experience is strong evidence: building in a team, collaborating across roles, maintaining services all demonstrate soft skills in action.
+- Mark matched if there is reasonable evidence. Cite the specific CV content that supports the inference.
 """
 
 LANGUAGE_EVAL_RULES = """
@@ -145,17 +172,21 @@ Return ONLY valid JSON matching this exact schema:
     "cover_letter": "string — a complete, professional cover letter tailored to this role"
 }}
 
-Rules:
-- Generate 3-6 CV suggestions. Each must be specific and reference concrete sections of the CV (e.g., "Skills section", "Experience at [company]", "Education").
-- For missing skills: suggest adding them ONLY if the candidate has transferable experience. Do not suggest adding skills the candidate does not have.
-- For matched skills with weak evidence: suggest how to strengthen the phrasing by referencing the specific experience from the evidence field above.
-- CRITICAL: Never fabricate or embellish. Every claim, metric, achievement, and detail in the cover letter must be directly traceable to the CV text above. Do not invent percentages, processes, tools, or outcomes that the CV does not explicitly state.
-- NEVER suggest trivial rephrasing like renaming "Python" to "Python development" or adding adjectives to existing skills. Only suggest substantive changes: adding missing quantifiable achievements, restructuring sections, highlighting overlooked projects, or adding context that demonstrates impact.
-- The cover letter must be professional, 3-4 paragraphs, and directly connect the candidate's strengths to the job requirements. Separate each paragraph with a blank line (use \\n\\n in the JSON string).
-- CRITICAL: The alignment analysis above is the single source of truth. Every skill under MATCHED is a confirmed, verified strength — present it confidently. The ONLY gaps are skills explicitly listed under MISSING. Never mention, imply, or hedge about any matched skill being weak or underdeveloped.
-- If there are no skills under MISSING, do not mention any gaps or areas of growth at all.
-- Do not use generic filler language. Every sentence should be specific to this candidate and role.
-- Final check: re-read the cover letter before returning. Remove any claim about tools, practices, metrics, or achievements that do not appear verbatim or near-verbatim in the CV text above.
+CV suggestions:
+- Generate 3-6 suggestions. Each must reference a concrete CV section (e.g., "Skills section", "Experience at [company]").
+- For missing skills: only suggest adding them if the candidate has transferable experience.
+- For matched skills with weak evidence: suggest strengthening the phrasing using the specific experience from the evidence field.
+- Only suggest substantive changes: quantifiable achievements, section restructuring, overlooked projects, or impact context. No trivial rephrasing.
+
+Cover letter:
+- Professional, 3-4 paragraphs, connecting the candidate's strengths to the job requirements. Separate paragraphs with \\n\\n.
+- The alignment analysis is the single source of truth. Every MATCHED skill is a confirmed strength — present it confidently. The ONLY gaps are skills under MISSING. Never hedge about matched skills.
+- If there are no MISSING skills, do not mention any gaps or areas of growth.
+- Every sentence should be specific to this candidate and role. No generic filler.
+
+Honesty:
+- Never fabricate or embellish. Every claim, metric, and detail must be directly traceable to the CV text above.
+- Final check: remove any claim about tools, practices, metrics, or achievements not in the CV.
 """
 
 
@@ -199,12 +230,19 @@ Return ONLY valid JSON matching this schema:
     "summary": "2-3 sentence overall assessment addressed directly to the candidate using you/your."
 }}
 
-Rules:
+Calibration:
 - Score each dimension independently based on evidence, not impression.
 - overall_score must equal the exact weighted average: sum of (score * weight) across all dimensions.
-- Be honest and calibrated: a candidate missing 3 of 5 required skills should not score above 50 on Skill Match.
-- 80+ means strong fit, 50-79 means partial fit with notable gaps, below 50 means weak fit.
-- Skill Match scoring: use a two-step process. Step 1: compute a base score from the required skill match rate (matched_required / total_required * 100). Step 2: adjust based on preferred skills — each matched preferred skill adds a small bonus, missing most preferred skills subtracts a small penalty (up to ~10 points either way). Required skills should dominate this dimension; preferred skills are a secondary modifier. Do NOT average required and preferred together as equals.
-- Experience Relevance scoring: if "Candidate Experience Level" says "Not specified by the job", score this dimension purely on how well the candidate's experience maps to the job responsibilities — do not penalize for years of experience. If a specific candidate experience is provided, compare it against the job's required experience level and score proportionally lower when there is a significant gap.
+- 80+ = strong fit, 50-79 = partial fit with notable gaps, below 50 = weak fit.
+- Be calibrated: a candidate missing 3 of 5 required skills should not score above 50 on Skill Match.
+
+Per-dimension scoring:
+- Skill Match: base score = required skill match rate (matched / total * 100). Then adjust with preferred skills as a secondary modifier (up to ~10 points either way). Do not average required and preferred as equals.
+- Experience Relevance: score how well the candidate's work history (roles, projects, duration, domain) maps to the job's responsibilities and level. Do not re-evaluate individual skills — that is Skill Match's job. If a skill is missing, it is already penalized in Skill Match; do not penalize Experience Relevance again for the same gap. Only cite experience gaps that are genuinely about the type, depth, or domain of work performed — not about whether a specific skill was used.
+  - If "Candidate Experience Level" says "Not specified by the job", score purely on how well experience maps to responsibilities — do not penalize for years.
+  - Otherwise, compare against the required level. By default, only professional (paid/industry) positions count toward years-of-experience requirements. However, if the job explicitly accepts non-professional experience (e.g., "internships and projects count", "academic projects welcome"), then those experience types count fully — do not penalize the candidate for lacking paid/industry experience when the job itself does not require it.
+  - Score proportionally lower only when there is a genuine gap between what the job requires and what the candidate has.
+
+Output:
 - Reference specific skills, experiences, and cover letter content. No generic statements.
 """

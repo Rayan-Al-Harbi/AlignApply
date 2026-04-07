@@ -14,7 +14,6 @@ ApplyCheck takes a CV and a job posting, then runs them through a pipeline of sp
 - Skill dispute flow — users can verify skills the AI missed, triggering a rescore
 - Experience level gap detection in scoring
 - JWT authentication with persistent CV storage and analysis history
--
 
 ## Architecture
 

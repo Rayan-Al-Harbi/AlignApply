@@ -15,12 +15,13 @@ Rules:
 - Do not invent information. Only extract what is explicitly stated.
 - Each skill must be an evaluatable professional competency — something you could verify on a CV (a technology, framework, methodology, tool, certification, or professional capability).
 - Do NOT extract generic nouns that are domain context rather than skills (e.g., "evidence", "approvals", "data", "state", "controlled issuance").
-- When a list gives examples of a category (e.g., "frameworks such as LangGraph / CrewAI / AutoGen"), extract the category ("agent orchestration frameworks") — not each example separately.
+- When a list gives examples of a niche category where the items are interchangeable and not widely recognized as standalone skills, extract the category — not each example separately. But when the listed items are widely recognized tools, languages, or platforms that represent distinct competencies, extract each one individually.
 - Avoid duplicates and subsumption: if a broader skill already covers a narrower one, keep only the broader one.
 - When a requirement describes a domain and lists its components to clarify scope, extract the domain — not each component as a separate skill.
 - Each extracted skill should be short and focused — a core competency, not a sentence. Do not bundle unrelated qualifiers or context into a single skill.
 - Drop single generic words that are too vague to meaningfully verify on a CV.
 - Include soft skills (communication, collaboration, leadership) and language proficiency when stated.
+- After extracting skills from the requirements section, also scan the responsibilities section for additional implied competencies. If performing a responsibility requires a specific, verifiable skill that is not already covered, add that skill to required_skills. Extract the underlying competency, not the responsibility itself. This step is additive — do not remove or merge any skills already extracted from the requirements section.
 - Strictly respect required vs preferred sections. Any skills listed under "nice to have", "preferred", "bonus", "strong advantage", or similar sections go in preferred_skills, not required_skills.
 
 Job Description:
@@ -40,7 +41,8 @@ Return ONLY valid JSON matching this exact schema:
             "company": "string",
             "role": "string",
             "duration": "string",
-            "description": "string"
+            "description": "string",
+            "type": "professional | academic | extracurricular"
         }}
     ],
     "education": [
@@ -57,6 +59,7 @@ Rules:
 - If a field is not found, use an empty string or empty list as appropriate.
 - Do not invent information. Only extract what is explicitly stated.
 - Skills should be concise (e.g., "Python", "Project Management", "AWS").
+- For each experience, classify its type: "professional" (paid employment at a company), "academic" (research positions, teaching assistantships, university labs), or "extracurricular" (student clubs, volunteer work, hackathons, personal projects). Use the context clues in the CV — company names, university affiliations, club mentions — to determine the correct type.
 
 CV Description:
 {cv_description_text}
@@ -109,6 +112,7 @@ HARD_SKILL_EVAL_RULES = """
 - For broad foundational skills, match if the CV demonstrates proficiency through specific languages, frameworks, or projects that fall under that umbrella.
 - When a skill includes qualifiers or context in parentheses, match based on the core competency. The qualifiers describe the ideal scope, not strict requirements that must each appear individually.
 - Do not infer from loosely related technologies.
+- When a skill implies sustained professional-grade work (e.g., engineering, deployment, pipelines), require evidence of professional or production-scale experience — not just using a related technology in a personal or academic project.
 """
 
 SOFT_SKILL_EVAL_RULES = """
@@ -205,6 +209,6 @@ Rules:
 - Be honest and calibrated: a candidate missing 3 of 5 required skills should not score above 50 on Skill Match.
 - 80+ means strong fit, 50-79 means partial fit with notable gaps, below 50 means weak fit.
 - Skill Match scoring: use a two-step process. Step 1: compute a base score from the required skill match rate (matched_required / total_required * 100). Step 2: adjust based on preferred skills — each matched preferred skill adds a small bonus, missing most preferred skills subtracts a small penalty (up to ~10 points either way). Required skills should dominate this dimension; preferred skills are a secondary modifier. Do NOT average required and preferred together as equals.
-- Experience Relevance scoring: if "Candidate Experience Level" says "Not specified by the job", score this dimension purely on how well the candidate's experience maps to the job responsibilities — do not penalize for years of experience. If a specific candidate experience is provided, compare it against the job's required experience level and score proportionally lower when there is a significant gap.
+- Experience Relevance scoring: if "Candidate Experience Level" says "Not specified by the job", score this dimension purely on how well the candidate's experience maps to the job responsibilities — do not penalize for years of experience. If a specific candidate experience is provided, compare it against the job's required experience level. Only professional (paid/industry) positions count toward years-of-experience requirements — academic, extracurricular, and personal project experience does not. Score proportionally lower when there is a gap between professional years and required years.
 - Reference specific skills, experiences, and cover letter content. No generic statements.
 """

@@ -64,8 +64,18 @@ def _format_experience_summary(experiences: list[dict]) -> str:
     """Format experience durations from LLM-extracted CV profile."""
     if not experiences:
         return "No professional experience listed"
-    lines = [f"  - {e.get('role', 'Role')} at {e.get('company', 'Company')} ({e.get('duration', 'unknown duration')})" for e in experiences]
-    return f"{len(experiences)} position(s):\n" + "\n".join(lines)
+    professional = [e for e in experiences if e.get("type", "professional") == "professional"]
+    other = [e for e in experiences if e.get("type", "professional") != "professional"]
+    lines = []
+    if professional:
+        lines.append(f"Professional experience — {len(professional)} position(s):")
+        lines.extend(f"  - {e.get('role', 'Role')} at {e.get('company', 'Company')} ({e.get('duration', 'unknown duration')})" for e in professional)
+    else:
+        lines.append("Professional experience — none")
+    if other:
+        lines.append(f"Non-professional (academic/extracurricular) — {len(other)} position(s):")
+        lines.extend(f"  - {e.get('role', 'Role')} at {e.get('company', 'Company')} ({e.get('duration', 'unknown duration')}, {e.get('type', 'other')})" for e in other)
+    return "\n".join(lines)
 
 
 def rescore(job_profile: JobProfile, analysis: AlignmentAnalysis, cover_letter: str, candidate_experience: str = "Not available") -> ScorerOutput:

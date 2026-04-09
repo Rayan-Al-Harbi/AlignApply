@@ -242,7 +242,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{a.job_title}</p>
+                  {a.job_title && <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{a.job_title}</p>}
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {a.matched_count}/{a.matched_count + a.missing_count} skills matched
                   </p>

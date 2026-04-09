@@ -15,9 +15,9 @@ def build_response(state: dict) -> AnalyzeResponse:
     scorer_output = state["scorer_output"]
 
     return AnalyzeResponse(
-        job_title=job_profile.title,
+        job_title=job_profile.title or "",
         job_profile=JobProfileResponse(
-            title=job_profile.title,
+            title=job_profile.title or "",
             required_skills=job_profile.required_skills,
             preferred_skills=job_profile.preferred_skills,
             experience_level=job_profile.experience_level,

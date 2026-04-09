@@ -182,7 +182,7 @@ def list_analyses(
 
         summaries.append(AnalysisSummary(
             id=str(r.id),
-            job_title=job_profile.get("title", "Unknown"),
+            job_title=job_profile.get("title", ""),
             overall_score=r.scorer_output.get("overall_score", 0),
             matched_count=matched_count,
             missing_count=missing_count,

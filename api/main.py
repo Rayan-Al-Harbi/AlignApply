@@ -266,9 +266,9 @@ def rescore_application(request: RescoreRequest):
         )
 
         response = AnalyzeResponse(
-            job_title=jp.title,
+            job_title=jp.title or "",
             job_profile=JobProfileResponse(
-                title=jp.title,
+                title=jp.title or "",
                 required_skills=jp.required_skills,
                 preferred_skills=jp.preferred_skills,
                 experience_level=jp.experience_level,

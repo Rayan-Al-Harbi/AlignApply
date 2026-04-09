@@ -83,7 +83,7 @@ export default function HistoryPage() {
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{a.job_title}</p>
+            {a.job_title && <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{a.job_title}</p>}
             <div className="flex items-center gap-3 mt-1.5">
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {a.matched_count}/{a.matched_count + a.missing_count} skills

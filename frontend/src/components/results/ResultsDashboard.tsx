@@ -50,7 +50,7 @@ export default function ResultsDashboard({
       <div className="flex items-center justify-between mb-8">
         <div>
           <p className="text-xs font-semibold text-primary dark:text-indigo-300 uppercase tracking-widest mb-1">Results</p>
-          <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{result.job_title}</h2>
+          {result.job_title && <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">{result.job_title}</h2>}
         </div>
         <div className="flex items-center gap-2">
           <button

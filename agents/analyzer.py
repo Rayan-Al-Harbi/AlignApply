@@ -11,8 +11,6 @@ logger = logging.getLogger("applycheck.analyzer")
 
 
 def _validate_job_profile(job_profile) -> None:
-    if not job_profile.title or not job_profile.title.strip():
-        raise ValueError("Extracted job profile has no title — job description may be too vague.")
     if not job_profile.required_skills:
         raise ValueError(
             f"Job profile '{job_profile.title}' has no required skills — "

@@ -12,4 +12,4 @@ def friendly_error(e: Exception) -> tuple[int, str]:
         return 502, "AI service authentication error. Please contact support."
     if "timeout" in msg.lower() or "timed out" in msg.lower():
         return 504, "The analysis took too long. Please try again with a shorter job description or CV."
-    return 500, "Something went wrong during analysis. Please try again."
+    return 500, "Something went wrong. Please try again."

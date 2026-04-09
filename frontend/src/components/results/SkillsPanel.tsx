@@ -51,7 +51,7 @@ export default function SkillsPanel({ analysis, disputedSkills, onToggleDispute 
           <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2 flex-wrap">
             <span className="w-2 h-2 rounded-full bg-danger" />
             Missing Skills
-            <span className="font-medium normal-case tracking-normal text-primary dark:text-indigo-300">— Select the skills you have and recalculate</span>
+            <span className="font-medium normal-case tracking-normal text-primary dark:text-indigo-300">— Select the skills you have and reanalyze</span>
           </h4>
 
           {analysis.missing_skills.length > 0 && (

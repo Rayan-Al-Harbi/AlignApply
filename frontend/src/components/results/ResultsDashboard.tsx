@@ -118,7 +118,7 @@ export default function ResultsDashboard({
                       <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
                         {disputedSkills.size}
                       </span>
-                      Reanalyze with Selected Skills
+                      Analyze again
                     </>
                   )}
                 </button>

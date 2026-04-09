@@ -180,7 +180,6 @@ def rescore_application(request: RescoreRequest):
 
         # Build matched/missing lists, applying disputes
         disputed_names = {d.skill for d in request.disputed_skills}
-        dispute_evidence = "Demonstrated through professional experience and practical application."
 
         matched_skills = [
             SkillMatch(skill=s.skill, matched=True, evidence=s.evidence)
@@ -189,7 +188,8 @@ def rescore_application(request: RescoreRequest):
         missing_skills = []
         for skill in request.analysis.missing_skills:
             if skill in disputed_names:
-                matched_skills.append(SkillMatch(skill=skill, matched=True, evidence=dispute_evidence))
+                evidence = f"Confirmed by candidate — {skill} is applied professionally through hands-on projects and real-world implementation."
+                matched_skills.append(SkillMatch(skill=skill, matched=True, evidence=evidence))
             else:
                 missing_skills.append(skill)
 
@@ -200,7 +200,8 @@ def rescore_application(request: RescoreRequest):
         missing_preferred = []
         for skill in request.analysis.missing_preferred:
             if skill in disputed_names:
-                matched_preferred.append(SkillMatch(skill=skill, matched=True, evidence=dispute_evidence))
+                evidence = f"Confirmed by candidate — {skill} is applied professionally through hands-on projects and real-world implementation."
+                matched_preferred.append(SkillMatch(skill=skill, matched=True, evidence=evidence))
             else:
                 missing_preferred.append(skill)
 

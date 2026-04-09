@@ -47,7 +47,6 @@ const AGENTS: AgentConfig[] = [
     thoughts: [
       "Evaluating Skill Match dimension...",
       "Scoring Experience Relevance dimension...",
-      "Assessing Presentation Quality dimension...",
       "Computing weighted average across dimensions...",
       "Calibrating final score and generating summary...",
     ],

@@ -174,10 +174,11 @@ Return ONLY valid JSON matching this exact schema:
 }}
 
 CV suggestions:
-- Generate 3-6 suggestions. Each must reference a concrete CV section (e.g., "Skills section", "Experience at [company]").
-- For missing skills: only suggest adding them if the candidate has transferable experience.
-- For matched skills with weak evidence: suggest strengthening the phrasing using the specific experience from the evidence field.
-- Only suggest substantive changes: quantifiable achievements, section restructuring, overlooked projects, or impact context. No trivial rephrasing.
+- Generate 3-6 actionable suggestions spread across different parts of the CV — avoid clustering multiple suggestions under the same section.
+- Each suggestion should target a specific part of the CV (a role, a project, the summary, etc.) and explain exactly what to change and why it strengthens the application for this role.
+- Focus on: quantifying achievements with metrics, strengthening weak evidence for matched skills, surfacing overlooked experience that maps to job requirements, and restructuring content for impact.
+- Only suggest adding a missing skill if the CV already shows transferable experience that supports it. Never suggest adding skills the candidate does not demonstrate.
+- No trivial rephrasing. Every suggestion must materially improve how the CV reads for this specific role.
 
 Cover letter:
 - Professional, 3-4 paragraphs, connecting the candidate's strengths to the job requirements. Separate paragraphs with \\n\\n.
@@ -192,7 +193,7 @@ Honesty:
 
 
 SCORER_PROMPT = """
-Score this job application across three dimensions.
+Score this job application across two dimensions.
 
 Job Profile:
 {job_profile}
@@ -202,29 +203,20 @@ Candidate Experience Level: {candidate_experience}
 Alignment Analysis:
 {analysis}
 
-Cover Letter:
-{cover_letter}
-
 Return ONLY valid JSON matching this schema:
 {{
     "dimensions": [
         {{
             "dimension": "Skill Match",
             "score": 0,
-            "weight": 0.35,
+            "weight": 0.50,
             "reasoning": "1-2 sentences explaining the score, referencing specific matched and missing skills."
         }},
         {{
             "dimension": "Experience Relevance",
             "score": 0,
-            "weight": 0.35,
+            "weight": 0.50,
             "reasoning": "1-2 sentences on how directly the candidate's experience maps to the job responsibilities."
-        }},
-        {{
-            "dimension": "Presentation Quality",
-            "score": 0,
-            "weight": 0.30,
-            "reasoning": "1-2 sentences on the full application: CV quality, cover letter quality, and how well they work together."
         }}
     ],
     "overall_score": 0,
@@ -248,12 +240,7 @@ Per-dimension scoring:
   - If "Candidate Experience Level" says "Not specified by the job", score purely on how well experience maps to responsibilities — do not penalize for years.
   - Otherwise, compare against the required level. By default, only professional (paid/industry) positions count toward years-of-experience requirements. However, if the job explicitly accepts non-professional experience (e.g., "internships and projects count", "academic projects welcome"), then those experience types count fully — do not penalize the candidate for lacking paid/industry experience when the job itself does not require it.
   - Score proportionally lower only when there is a genuine gap between what the job requires and what the candidate has.
-- Presentation Quality: evaluates the full application, not just the cover letter. Assess three things:
-    (1) Evidence quality: do the matched skills in the alignment analysis have strong, specific evidence (quantified achievements, concrete projects, named tools) or is the evidence vague and generic?
-    (2) Cover letter quality: is the cover letter specific to the role, does it connect the candidate's strengths to job requirements, and is it professional?
-    (3) Coherence: does the cover letter reinforce the evidence from the alignment analysis — grounding claims in the same concrete achievements — rather than making unsupported or generic statements?
-  - Do NOT score this dimension based on the cover letter alone. A candidate with strong, specific evidence for their matched skills and a decent cover letter should score higher than a candidate with weak evidence and a polished cover letter.
 
 Output:
-- Reference specific skills, experiences, and cover letter content. No generic statements.
+- Reference specific skills and experiences. No generic statements.
 """

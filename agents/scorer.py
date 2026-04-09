@@ -83,7 +83,6 @@ def rescore(job_profile: JobProfile, analysis: AlignmentAnalysis, cover_letter: 
     prompt = SCORER_PROMPT.format(
         job_profile=_format_job_profile(job_profile),
         analysis=_format_analysis(analysis),
-        cover_letter=cover_letter,
         candidate_experience=candidate_experience,
     )
     raw = tracked_llm_call(
@@ -106,7 +105,6 @@ def scorer_node(state) -> dict:
     try:
         job_profile = state.job_profile
         analysis = state.alignment_analysis
-        cover_letter = state.cover_letter
 
         # Only include candidate experience when the job specifies years
         if _job_requires_experience_years(job_profile.experience_level) and state.cv_experiences:
@@ -117,7 +115,6 @@ def scorer_node(state) -> dict:
         prompt = SCORER_PROMPT.format(
             job_profile=_format_job_profile(job_profile),
             analysis=_format_analysis(analysis),
-            cover_letter=cover_letter,
             candidate_experience=candidate_experience,
         )
 
